@@ -1,6 +1,6 @@
 # bspline
 
-Build and use B-splines for interpolation and regression.
+R package to build and use B-splines for interpolation and regression.
   In case of regression, equality constraints as well as monotonicity
   requirement can be imposed. Moreover, 
   knot positions (not only spline coefficients) can be part of 
