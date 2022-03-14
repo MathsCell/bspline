@@ -100,7 +100,7 @@ outside of a meaningful range.
  x=c(x1, x2[-1], x3[-1])
  y=c(y1, y2[-1], y3[-1])
  plot(x, y)
- if (requireNamespace("numDeriv", silent=TRUE)) {
+ if (requireNamespace("numDeriv", quietly=TRUE)) {
     f=fitsmbsp(x, y, n=1, nki=2)
     lines(x, f(x))
  }

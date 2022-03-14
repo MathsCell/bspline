@@ -19,9 +19,12 @@ umat ipk(const vec& x, const vec& xk) {
     double xkmax=xk[nk-1];
     //x.print("x");
     //xk.print("xk");
+    //Rcout << "&x=" << &x[0] << std::endl;
+    //Rcout << "np=" << np << std::endl;
     for (size_t iik=0, iip=0; iik < nk-1; iik++) {
         double xki=xk[iik];
-        while((xki == xkmax || (iip == np-1 && iip > 0) ? x[iip] <= xki : x[iip] < xki) & (iip < np))
+        //Rcout << "beging: iik, iip=" << iik << ", " << iip << std::endl;
+        while ((iip < np) && (xki == xkmax || (iip == np-1 && iip > 0) ? x[iip] <= xki : x[iip] < xki))
             iip++;
         //Rcout << "iik, iip=" << iik << ", " << iip << std::endl;
         ip(0, iik)=iip;

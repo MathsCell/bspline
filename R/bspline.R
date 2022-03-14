@@ -194,7 +194,7 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0) {
 #'  x=c(x1, x2[-1], x3[-1])
 #'  y=c(y1, y2[-1], y3[-1])
 #'  plot(x, y)
-#'  if (requireNamespace("numDeriv", silent=TRUE)) {
+#'  if (requireNamespace("numDeriv", quietly=TRUE)) {
 #'     f=fitsmbsp(x, y, n=1, nki=2)
 #'     lines(x, f(x))
 #'  }
@@ -289,6 +289,7 @@ bsppar=function(f) {
 #'  a matrix of size \code{length(x) x ncol(qw)} if \code{select} is missing. Elsewhere,
 #'  a number of column will depend on \code{select} parameter. Column names in
 #'  the result matrix will be inherited from \code{qw}.
+#' @export
 par2bsp=function(n, qw, xk)
     local({
         n=n
@@ -336,6 +337,9 @@ diffn=function(m, ndiff=1L) {
 #' @return Numeric vector, estimated knot positions
 #' @export
 iknots=function(x, y, nki=1L, n=3L) {
+    stopifnot(nki >= 0L)
+    if (nki == 0L)
+        return(double(0L))
     y=as.matrix(y)
     dxy=diffn(cbind(x, y), n+1L)
     dy=dxy[,-1L, drop=FALSE]
@@ -346,19 +350,24 @@ iknots=function(x, y, nki=1L, n=3L) {
     tv=rowSums(tv)
     tv=tv/tv[length(tv)]
     ra=range(xtv)
-    ftv=smbsp(xtv, tv, xki=xtv[1]+diff(ra)*seq(0, 1, len=6)[2:5], n=1L, lieq=list(cbind(ra,0:1)), monotone=1)
+    ftv=smbsp(xtv, tv, xki=xtv[1]+diff(ra)*seq(0, 1, len=12)[2:11], n=1L, lieq=list(cbind(ra,0:1)), monotone=1)
     par=bsppar(ftv)
     if (FALSE) {
         print(c("knots qw=", par$qw))
         print(c("knots dqw=", diff(par$qw)))
     }
-    etv=seq(0, 1, length.out=nki+2)[c(-1L, -(nki+2))] # equalized tv
-    ik=findInterval(etv, par$qw, rightmost.closed=TRUE)
+    etv=seq(0, 1, length.out=nki+2L)[c(-1L, -(nki+2L))] # equalized tv
+    qw=par$qw
+    dq=diff(qw)
+    dq[dq < 0]=0 # to force monotonicity despite round off errors
+    qw=c(0., cumsum(dq))
+    qw=qw/qw[length(qw)] # to make qw end up in 1
+    ik=findInterval(etv, qw, rightmost.closed=TRUE)
     i=seq_along(etv)
     k=ik[i]
     x1=par$xk[k+1L]
     x2=par$xk[k+2L]
-    y1=par$qw[k]
-    y2=par$qw[k+1L]
+    y1=qw[k]
+    y2=qw[k+1L]
     x1+(x2-x1)*(etv-y1)/(y2-y1)
 }

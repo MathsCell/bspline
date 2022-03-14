@@ -85,5 +85,5 @@ test.dbsp.ex=function() {
   f=smbsp(x, y, nki=2L)
   d_f=dbsp(f)
   r=d_f(x)-2*pi*cos(2*pi*x)
-  checkEqualsNumeric(1.494275547, sum(r*r))
+  checkEqualsNumeric(1.509721755, sum(r*r))
 }

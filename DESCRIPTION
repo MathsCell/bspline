@@ -16,6 +16,8 @@ Description: Build and use B-splines for interpolation and regression.
   knots. 'bspline' is written with concern about computing 
   performance that's why the basis calculation is implemented in C++.
   The rest is implemented in R but without notable impact on computing speed.
+URL: https://github.com/MathsCell/bspline
+BugReports: https://github.com/MathsCell/bspline/issues
 License: GPL-2
 Encoding: UTF-8
 Imports: Rcpp (>= 1.0.7), nlsic, arrApply
