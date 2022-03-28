@@ -5,7 +5,16 @@
 \alias{fitsmbsp}
 \title{Smoothing B-spline of order n >= 0}
 \usage{
-smbsp(x, y, n = 3L, xki = NULL, nki = 1L, lieq = NULL, monotone = 0)
+smbsp(
+  x,
+  y,
+  n = 3L,
+  xki = NULL,
+  nki = 1L,
+  lieq = NULL,
+  monotone = 0,
+  mat = NULL
+)
 
 fitsmbsp(
   x,
@@ -45,6 +54,10 @@ is imposed on corresponding y column.}
 must be increasing;
 if monotone < 0, B-spline must be decreasing; if monotone == 0 (default), no
 constraint on monotonicity is imposed.}
+
+\item{mat}{Numeric matrix of basis vectors, if NULL it is recalculated
+by \code{bsc()}. If provided, it is the responsibility of the user
+to ensure that this matrix be adequate to xki vector.}
 
 \item{control}{List, passed through to \code{nlsic()} call}
 }
@@ -97,8 +110,8 @@ outside of a meaningful range.
  y1=x1+rnorm(x1, sd=0.1)
  y2=-2+3*x2+rnorm(x2, sd=0.1)
  y3=4+x3+rnorm(x3, sd=0.1)
- x=c(x1, x2[-1], x3[-1])
- y=c(y1, y2[-1], y3[-1])
+ x=c(x1, x2, x3)
+ y=c(y1, y2, y3)
  plot(x, y)
  if (requireNamespace("numDeriv", quietly=TRUE)) {
     f=fitsmbsp(x, y, n=1, nki=2)

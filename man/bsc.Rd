@@ -2,9 +2,9 @@
 % Please edit documentation in R/RcppExports.R
 \name{bsc}
 \alias{bsc}
-\title{Basis matrix for B-spline of order 0 (step function) and higher}
+\title{Basis matrix and knot Jacobian for B-spline of order 0 (step function) and higher}
 \usage{
-bsc(x, xk, n = 3L)
+bsc(x, xk, n = 3L, cjac = FALSE)
 }
 \arguments{
 \item{x}{Numeric vector, abscissa points}
@@ -12,9 +12,12 @@ bsc(x, xk, n = 3L)
 \item{xk}{Numeric vector, knots}
 
 \item{n}{Integer scalar, polynomial order (3 by default)}
+
+\item{cjac}{Logical scalar, if \code{TRUE} makes to calculate Jacobian of basis
+vectors as function of knot positions (FALSE by default)}
 }
 \value{
-Numeric matrix, each column correspond to a B-spline calculated on x
+
 }
 \description{
 This function is analogous but not equivalent to \code{splines:bs()} and \code{splines2::bSpline()}.
@@ -23,7 +26,11 @@ It is also several times faster.
 \details{
 For n==0, step function is defined as constant on each interval
   \code{[xk[i]; xk[i+1][}, i.e. closed on the left and open on the right
-  except for the last interval which is closed on the right too.
+  except for the last interval which is closed on the right too. The
+  Jacobian for step function is considered 0 in every x point even if
+  in points where x=xk, the derivative is not defined.\cr
+  For n==1, Jacobian is discontinuous in such points so for
+  these points we take the derivative from the right.
 }
 \examples{
   x=seq(0, 5, length.out=101)
