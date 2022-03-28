@@ -1,0 +1,4 @@
+.gitignore
+notes/*
+^.*\.Rproj$
+^README\.md$

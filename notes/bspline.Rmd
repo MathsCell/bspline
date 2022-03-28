@@ -1,0 +1,48 @@
+---
+title: "B-spline notes"
+author: "Serguei Sokol"
+date: "13/04/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## B-spline recursive definition
+
+Cox-de Boor formula:
+
+$$
+B_{i,0} := \left\{
+\begin{array}{ll}
+  1\ \ \text{if}\ t_i \leq x \le t_{i+1} \\
+  0\ \ \text{otherwise.}
+\end{array}
+\right.
+$$
+$$ B_{i,k} := \frac{x-t_i}{t_{i+k} - t_i} B_{i,k-1}(x) + \frac{t_{i+k+1} - x}{t_{i+k+1} - t_{i+1}} B_{i+1,k-1}(x) $$
+
+## First derivative
+
+$$ \frac{dB_{i,k}(x)}{dx} = k \left( \frac{B_{i,k-1}(x)}{t_{i+k} - t_i} - \frac{B_{i+1,k-1}(x)}{t_{i+k+1} - t_{i+1}}  \right) $$
+
+This implies that
+
+$$ \frac{d}{dx}\sum_{i} \alpha_i B_{i,k} =  \sum_{i=r-k+2}^{s-1} k \frac{\alpha_i - \alpha_{i-1}}{t_{i+k} - t_i} B_{i,k-1} \ \ \text{on}\ \ [t_r, t_s] $$
+
+## Integral
+
+Let
+$$ \beta_i = k \frac{\alpha_i - \alpha_{i-1}}{t_{i+k} - t_i} $$
+Then
+$$ \int_0^\zeta  \frac{d}{dx}\sum_{i} \alpha_i B_{i,k} \ dx =  \int_0^\zeta \sum_{i=r-k+2}^{s-1} \beta_i B_{i,k-1} \ dx $$
+$$ \sum_{i} \alpha_i B_{i,k} \mid_0^\zeta = \int_0^\zeta \sum_{i=r-k+2}^{s-1} \beta_i B_{i,k-1} \ dx $$
+If $\beta_i$ is  considered as known and we have to find $\alpha_i$, we get
+$$
+ \alpha_i = \beta_i \frac{t_{i+k}-t_i}{k} + \alpha_{i-1}
+$$
+here $\alpha_0$ being a freely defined constant. In term of cumulative sum, it gives
+$$
+ \alpha_j = \sum_{i=0}^j \beta_i \frac{t_{i+k}-t_i}{k}
+$$

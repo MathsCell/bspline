@@ -5,7 +5,17 @@
 \alias{fitsmbsp}
 \title{Smoothing B-spline of order n >= 0}
 \usage{
-smbsp(x, y, n = 3L, xki = NULL, nki = 1L, lieq = NULL, monotone = 0)
+smbsp(
+  x,
+  y,
+  n = 3L,
+  xki = NULL,
+  nki = 1L,
+  lieq = NULL,
+  monotone = 0,
+  positive = 0,
+  mat = NULL
+)
 
 fitsmbsp(
   x,
@@ -15,6 +25,7 @@ fitsmbsp(
   nki = 1L,
   lieq = NULL,
   monotone = 0,
+  positive = 0,
   control = list()
 )
 }
@@ -41,10 +52,23 @@ Constraints are given as a 2-column matrix \code{(xe, ye)} where
 for each xe, an ye value is imposed. If a list item is NULL, no constraint
 is imposed on corresponding y column.}
 
-\item{monotone}{Numeric scalar, if monotone > 0, resulting B-spline
-must be increasing;
-if monotone < 0, B-spline must be decreasing; if monotone == 0 (default), no
-constraint on monotonicity is imposed.}
+\item{monotone}{Numeric scalar or vector, if \code{monotone > 0}, resulting B-spline
+weights must be increasing;
+if \code{monotone < 0}, B-spline weights must be decreasing; if \code{monotone == 0} (default), no
+constraint on monotonicity is imposed. If 'monotone' is a vector it
+must be of length \code{ncol(y)}, in which case each component indicates
+the constraint for corresponding column of y.}
+
+\item{positive}{Numeric scalar, if \code{positive > 0}, resulting B-spline weights
+must be >= 0;
+if \code{positive < 0}, B-spline weights must be decreasing; if \code{positive == 0} (default), no
+constraint on positivity is imposed. If 'positive' is a vector it
+must be of length \code{ncol(y)}, in which case each component indicates
+the constraint for corresponding column of y.}
+
+\item{mat}{Numeric matrix of basis vectors, if NULL it is recalculated
+by \code{bsc()}. If provided, it is the responsibility of the user
+to ensure that this matrix be adequate to xki vector.}
 
 \item{control}{List, passed through to \code{nlsic()} call}
 }
@@ -93,17 +117,15 @@ outside of a meaningful range.
  # fit broken line with linear B-splines
  x1=seq(0, 1, length.out=11)
  x2=seq(1, 3, length.out=21)
- x3=seq(3, 4, len=11)
+ x3=seq(3, 4, length.out=11)
  y1=x1+rnorm(x1, sd=0.1)
  y2=-2+3*x2+rnorm(x2, sd=0.1)
  y3=4+x3+rnorm(x3, sd=0.1)
- x=c(x1, x2[-1], x3[-1])
- y=c(y1, y2[-1], y3[-1])
+ x=c(x1, x2, x3)
+ y=c(y1, y2, y3)
  plot(x, y)
- if (requireNamespace("numDeriv", quietly=TRUE)) {
-    f=fitsmbsp(x, y, n=1, nki=2)
-    lines(x, f(x))
- }
+ f=fitsmbsp(x, y, n=1, nki=2)
+ lines(x, f(x))
 }
 \seealso{
 \code{bsppar} for retrieving parameters of B-spline functions; \code{par2bsp}

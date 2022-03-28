@@ -13,21 +13,35 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // bsc
-mat bsc(const vec& x, const vec& xk, const size_t n);
-RcppExport SEXP _bspline_bsc(SEXP xSEXP, SEXP xkSEXP, SEXP nSEXP) {
+SEXP bsc(const vec& x, const vec& xk, const size_t n, const bool cjac);
+RcppExport SEXP _bspline_bsc(SEXP xSEXP, SEXP xkSEXP, SEXP nSEXP, SEXP cjacSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const vec& >::type xk(xkSEXP);
     Rcpp::traits::input_parameter< const size_t >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(bsc(x, xk, n));
+    Rcpp::traits::input_parameter< const bool >::type cjac(cjacSEXP);
+    rcpp_result_gen = Rcpp::wrap(bsc(x, xk, n, cjac));
+    return rcpp_result_gen;
+END_RCPP
+}
+// jacw
+cube jacw(const cube& jac, const RObject& qws);
+RcppExport SEXP _bspline_jacw(SEXP jacSEXP, SEXP qwsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const cube& >::type jac(jacSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type qws(qwsSEXP);
+    rcpp_result_gen = Rcpp::wrap(jacw(jac, qws));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_bspline_bsc", (DL_FUNC) &_bspline_bsc, 3},
+    {"_bspline_bsc", (DL_FUNC) &_bspline_bsc, 4},
+    {"_bspline_jacw", (DL_FUNC) &_bspline_jacw, 2},
     {NULL, NULL, 0}
 };
 

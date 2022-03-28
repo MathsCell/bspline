@@ -1,0 +1,1 @@
+find -name '*'.so -o -name '*'.so -exec rm -f {} \;
