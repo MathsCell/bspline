@@ -82,7 +82,7 @@ SEXP bsc(const vec& x, const vec &xk, const size_t n=3, const bool cjac=false) {
         stop("Knot number must be >= n+2=%i (got %i)", n+2, nk);
     auto np=x.n_elem;
     vec idxk, vtmp(np);
-    std::array<size_t, 2> len;
+    size_t len[2];
     mat res;
     umat ip=ipk(x, xk);
     mat dd=zeros<mat>(np, 2);

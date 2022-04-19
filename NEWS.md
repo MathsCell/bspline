@@ -1,4 +1,4 @@
-## v2.0 2022-04-19
+## v2.0.1 2022-04-19
 
  - `bsc()` can calculate Jacobian of basis vectors as function of knots.
     As a consequence, the suggestion of `numDeriv` package is removed
@@ -8,6 +8,7 @@
  - added monotonicity and positivity optional constraints
  - added Copyright field to DESCRIPTION
  - fixed inequality generation in `fitsmbsp()`
+ - fixed gcc-12 compile error
 
 ## v1.0.2 2022-03-17
 
