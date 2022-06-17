@@ -1,7 +1,7 @@
 Package: bspline
 Type: Package
 Title: B-Spline Interpolation and Regression
-Version: 2.0.1
+Version: 2.1
 Author: Serguei Sokol <sokol@insa-toulouse.fr>
 Maintainer: Serguei Sokol <sokol@insa-toulouse.fr>
 Description: Build and use B-splines for interpolation and regression.

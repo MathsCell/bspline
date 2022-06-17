@@ -4,7 +4,7 @@
 \alias{par2bsp}
 \title{Convert parameters to B-spline function}
 \usage{
-par2bsp(n, qw, xk)
+par2bsp(n, qw, xk, covqw = NULL, sdy = NULL, sdqw = NULL)
 }
 \arguments{
 \item{n}{Integer scalar, polynomial order of B-splines}

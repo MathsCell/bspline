@@ -22,8 +22,8 @@ Function calculating requested integral
 Indefinite integral of B-spline
 }
 \details{
-If f is B-spline, then following identity is held: dbsp(ibsp(f)) is identical to f.
-Generally, it does not work in the other sens: ibsp(dbsp(f)) is not f
+If f is B-spline, then following identity is held: Dbsp(ibsp(f)) is identical to f.
+Generally, it does not work in the other sens: ibsp(Dbsp(f)) is not f
 but not very far. If we can get an appropriate constant C=f(min(x)) then
-we can assert that ibsp(dbsp(f), const=C) is the same as f.
+we can assert that ibsp(Dbsp(f), const=C) is the same as f.
 }

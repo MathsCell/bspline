@@ -121,7 +121,7 @@ bsp=function(x, xk, qw, n=3L) {
 #' @alias fitsmbsp
 #' @alias smbsp
 #' @export
-smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, mat=NULL) {
+smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, mat=NULL, estSD=FALSE, tol=1.e-10) {
     y=as.matrix(y)
     nx=length(x)
     nc=ncol(y)
@@ -223,9 +223,9 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
     }
     monotone=as.character(monotone)
     positive=as.character(positive)
-    qra=qr(mat, LAPACK=TRUE)
     if (!is.null(lieq) || any(monotone != 0) || any(positive != 0)) {
         #browser()
+        qra=qr(mat, LAPACK=TRUE)
         qw=structure(vapply(seq_len(nc), function(ic) {
             m=monotone[ic]
             p=positive[ic]
@@ -235,7 +235,29 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
     } else {
         qw=nlsic::ls_ln_svd(mat, y)
     }
-    par2bsp(n, qw, xk)
+    f=par2bsp(n, qw, xk)
+    if (estSD) {
+        #browser()
+        # estimate sd of the fit
+        sdy=apply(f(x) - y, 2, sd, na.rm=TRUE)
+        # estimate SD of qw
+        s=svd(mat)
+        s$d=s$d[s$d/s$d[1L] >= tol]
+        s$d=1./s$d
+        r=length(s$d)
+        if (r < ncol(mat)) {
+            ir=seq_len(r)
+            s$u=s$u[,ir,drop=FALSE]
+            s$v=s$v[,ir,drop=FALSE]
+        }
+        covqw=tcrossprod(arrApply::arrApply(s$v, 2, "multv", v=s$d*s$d), s$v)
+        sdqw=sqrt(diag(covqw))%o%sdy
+        e=environment(f)
+        e$sdqw=sdqw
+        e$sdy=sdy
+        e$covqw=covqw
+    }
+    f
 }
 
 #' Smoothing B-spline with optimized knot positions
@@ -267,7 +289,7 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
 #'  lines(x, f(x))
 #' @importFrom nlsic nlsic lsi_ln
 #' @export
-fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, control=list()) {
+fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, control=list(), estSD=FALSE, tol=1.e-10) {
     np=length(x)
     y=as.matrix(y)
     stopifnot(nrow(y) == np)
@@ -310,7 +332,7 @@ fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=
         u=u, co=co, control=control, flsi=nlsic::lsi_ln)
     if (fit$error != 0)
         stop(fit$mes)
-    smbsp(x, y, n=n, xki=fit$par, nki=0, lieq=lieq, monotone=monotone, positive=positive)
+    smbsp(x, y, n=n, xki=fit$par, nki=0, lieq=lieq, monotone=monotone, positive=positive, estSD=estSD, tol=tol)
 }
 
 #' Derivative of B-spline
@@ -329,7 +351,8 @@ fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=
 #'   xk=bsppar(d_f)$xk
 #'   points(xk, d_f(xk), pch="x", col="red") # knot positions
 #' @export
-dbsp=function(f, nderiv=1L) {
+dbsp=function(f, nderiv=1L, same_xk=FALSE) {
+    #base::.Deprecated("Dbsp")
     stopifnot(nderiv >= 0L)
     if (nderiv == 0L)
         return(f)
@@ -338,17 +361,75 @@ dbsp=function(f, nderiv=1L) {
     xk=e$xk
     n=e$n
     stopifnot(n >= nderiv)
-    xkn=xk[c(-1L, -length(xk))]
-    qwn=arrApply::arrApply(qw, 1L, "diff")/(diff(xkn, lag=n)/n)
-    colnames(qwn)=colnames(qw)
-    #browser()
-    res=par2bsp(n-1L, qwn, xkn)
-    if (nderiv == 1L) {
-        res
+    dxi=n/diff(xk, lag=n)
+    dxi[!is.finite(dxi)]=0.
+    if (same_xk) {
+        qwn=arrApply::arrApply(rbind(0., qw, 0.), 1L, "diff")*dxi
+        colnames(qwn)=colnames(qw)
+        #browser()
+        res=par2bsp(n-1L, qwn, xk)
+        if (nderiv == 1L) {
+            res
+        } else {
+            dbsp(res, nderiv=nderiv-1L)
+        }
     } else {
-        dbsp(res, nderiv=nderiv-1L)
+        dxi=dxi[c(-1L, -length(dxi))]
+        qwn=arrApply::arrApply(qw, 1L, "diff")*dxi
+        colnames(qwn)=colnames(qw)
+        #browser()
+        res=par2bsp(n-1L, qwn, xk[c(-1L, -length(xk))])
+        if (nderiv == 1L) {
+            res
+        } else {
+            dbsp(res, nderiv=nderiv-1L, same_xk)
+        }
     }
 }
+
+#' Differentiation matrix
+#'
+#' Calculate matrix for obtaining coefficients of first-derivative B-spline.
+#' They can be calculated as \code{dqw=Md %*% qw}. Here, dqw are coefficients
+#' of the first derivative,
+#' Md is the matrix returned by this function, and qw are the coefficients
+#' of differentiated B-spline.\br
+#' Note that to obtain knots positions corresponding to dqw, just remove
+#' extreme knots in xk, one on each side.
+#'
+#' @param nqw Integer scalar, row number of qw matrix (i.e. degree of freedom of a B-spline)
+#' @param xk Numeric vector, knot positions
+#' @param n Integer scalar, B-spline polynomial order (3 by deafult)
+#' @return Numeric matrix of size \code{nqw-1 x nqw}
+#' @export
+dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
+    if (!is.null(f)) {
+        e=environment(f)
+        if (is.null(nqw))
+            nqw=NROW(e$qw)
+        if (is.null(xk))
+            xk=e$xk
+        if (is.null(n))
+            n=e$n
+    }
+    if (is.null(nqw))
+        stop("nqw must be deduced from f or given explicitly")
+    if (is.null(xk))
+        stop("xk must be deduced from f or given explicitly")
+    if (is.null(n))
+        stop("n must be deduced from f or given explicitly")
+    stopifnot(nqw == length(xk)-n-1L)
+    n1=nqw+1L
+    i=seq_len(nqw)
+    mat=diag(nrow=n1, ncol=nqw)
+    mat[cbind(i+1L, i)]=-1.
+    dxi=n/diff(xk, lag=n)
+    dxi[!is.finite(dxi)]=0.
+    mat=mat*dxi
+    if (!same_xk)
+        mat=mat[c(-1L,-nrow(mat)),,drop=FALSE]
+}
+
 #' Indefinite integral of B-spline
 #'
 #' @param f Function, B-spline such as returned by \code{smbsp()} or \code{par2bsp()}
@@ -358,10 +439,10 @@ dbsp=function(f, nderiv=1L) {
 #' @param nint Integer scalar >= 0, defines how many times to take integral (1 by default)
 #' @return Function calculating requested integral
 #' @details
-#' If f is B-spline, then following identity is held: dbsp(ibsp(f)) is identical to f.
-#' Generally, it does not work in the other sens: ibsp(dbsp(f)) is not f
+#' If f is B-spline, then following identity is held: Dbsp(ibsp(f)) is identical to f.
+#' Generally, it does not work in the other sens: ibsp(Dbsp(f)) is not f
 #' but not very far. If we can get an appropriate constant C=f(min(x)) then
-#' we can assert that ibsp(dbsp(f), const=C) is the same as f.
+#' we can assert that ibsp(Dbsp(f), const=C) is the same as f.
 #' @export
 ibsp=function(f, const=0, nint=1L) {
     stopifnot(nint >= 0L)
@@ -412,14 +493,24 @@ bsppar=function(f) {
 #'  a number of column will depend on \code{select} parameter. Column names in
 #'  the result matrix will be inherited from \code{qw}.
 #' @export
-par2bsp=function(n, qw, xk)
+par2bsp=function(n, qw, xk, covqw=NULL, sdy=NULL, sdqw=NULL)
     local({
         n=n
         qw=as.matrix(qw)
         xk=xk
-        function(x, select) {
-            if (base::missing(select)) bsp(x, xk, qw, n=n) else
-            bsp(x, xk, qw[, select, drop=FALSE], n=n)
+        covqw=covqw
+        sdy=sdy
+        sdqw=sdqw
+        function(x, select, fsd=0.) {
+            if (fsd == 0.) {
+                if (base::missing(select)) bsp(x, xk, qw, n=n) else
+                bsp(x, xk, qw[, select, drop=FALSE], n=n)
+            } else {
+                if (is.null(sdqw))
+                    stop("B-spline is asked for fsd != 0 but sdqw is NULL")
+                if (base::missing(select)) bsp(x, xk, qw+fsd*sdqw, n=n) else
+                bsp(x, xk, qw[, select, drop=FALSE]+fsd*sdqw[, select, drop=FALSE], n=n)
+            }
         }
     })
 #' Finite differences

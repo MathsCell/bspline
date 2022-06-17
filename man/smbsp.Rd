@@ -14,7 +14,9 @@ smbsp(
   lieq = NULL,
   monotone = 0,
   positive = 0,
-  mat = NULL
+  mat = NULL,
+  estSD = FALSE,
+  tol = 1e-10
 )
 
 fitsmbsp(
@@ -26,7 +28,9 @@ fitsmbsp(
   lieq = NULL,
   monotone = 0,
   positive = 0,
-  control = list()
+  control = list(),
+  estSD = FALSE,
+  tol = 1e-10
 )
 }
 \arguments{

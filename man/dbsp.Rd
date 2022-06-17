@@ -4,7 +4,7 @@
 \alias{dbsp}
 \title{Derivative of B-spline}
 \usage{
-dbsp(f, nderiv = 1L)
+dbsp(f, nderiv = 1L, same_xk = FALSE)
 }
 \arguments{
 \item{f}{Function, B-spline such as returned by \code{smbsp()} or \code{par2bsp()}}

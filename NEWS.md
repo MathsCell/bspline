@@ -1,3 +1,8 @@
+## v2.1 2022-06-??
+
+ - smbsp() can estimate covariance matrix of estimated coefficients
+ - added dmat()
+
 ## v2.0.1 2022-04-19
 
  - `bsc()` can calculate Jacobian of basis vectors as function of knots.
