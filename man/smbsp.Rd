@@ -74,6 +74,16 @@ the constraint for corresponding column of y.}
 by \code{bsc()}. If provided, it is the responsibility of the user
 to ensure that this matrix be adequate to xki vector.}
 
+\item{estSD}{Logical scalar, if TRUE, indicates to calculate: SD of each y column, covariance
+matrix and SD of spline coefficients. All these values can be retrieved
+with bsppar() call (FALSE by default). These estimations are made under assumption
+that all y points have uncorrelated noise. Optional constraints are not taken
+into account of SD.}
+
+\item{tol}{Numerical scalar, relative tolerance for small singular values
+that should be considered as 0 if \code{s[i] <= tol*s[1]}. This parameter
+is ignored if estSD=FALSE (1.e-10 by default).}
+
 \item{control}{List, passed through to \code{nlsic()} call}
 }
 \value{

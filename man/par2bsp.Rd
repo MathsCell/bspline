@@ -13,6 +13,13 @@ par2bsp(n, qw, xk, covqw = NULL, sdy = NULL, sdqw = NULL)
 column in case of matrix}
 
 \item{xk}{Numeric vector, knots}
+
+\item{covqw}{Numeric Matrix, covariance matrix of qw (can be estimated in \code{\link{smbsp}}).}
+
+\item{sdy}{Numeric vector, SD of each y column (can be estimated in \code{\link{smbsp}}).}
+
+\item{sdqw}{Numeric Matrix, SD of qw thus having the same dimension
+as qw (can be estimated in \code{\link{smbsp}}).}
 }
 \value{
 Function, calculating B-splines at arbitrary points and having

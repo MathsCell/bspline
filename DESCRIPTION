@@ -23,6 +23,6 @@ License: GPL-2
 Encoding: UTF-8
 Imports: Rcpp (>= 1.0.7), nlsic (>= 1.0.2), arrApply
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Suggests: RUnit
 Copyright: INRAE/INSA/CNRS

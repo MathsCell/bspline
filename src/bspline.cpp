@@ -4,19 +4,22 @@
 using namespace Rcpp;
 using namespace arma;
 
-// Intervals of points in knot intervals
-//
-// Find first and last+1 indexes iip s.t. x[iip] belongs to interval starting at xk[iik]
-//
-// @param x Numeric vector, abscissa points (must be non decreasing)
-// @param xk Numeric vector, knots (must be non decreasing)
-// @return Integer matrix of size \code{(2 x length(xk)-1)}. Indexes are 0-based
+//' Intervals of points in knot intervals
+//'
+//' Find first and last+1 indexes iip s.t. x[iip] belongs to interval starting at xk[iik]
+//'
+//' @param x Numeric vector, abscissa points (must be non decreasing)
+//' @param xk Numeric vector, knots (must be non decreasing)
+//' @return Integer matrix of size \code{(2 x length(xk)-1)}. Indexes are 0-based
+//' @export
+// [[Rcpp::export]]
 umat ipk(const vec& x, const vec& xk) {
     // find first and last+1 indexes iip s.t. x[iip] belongs to interval starting at xk[iik]
     // if not found, first==last+1, i.e. the length of interval is 0.
     auto nk=xk.n_elem, np=x.n_elem;
     umat ip(2, nk-1);
     double xkmax=xk[nk-1];
+    auto ip_in=uvec(find(x <= xkmax, 1, "last"))[0];
     //x.print("x");
     //xk.print("xk");
     //Rcout << "&x=" << &x[0] << std::endl;
@@ -24,14 +27,14 @@ umat ipk(const vec& x, const vec& xk) {
     for (size_t iik=0, iip=0; iik < nk-1; iik++) {
         double xki=xk[iik];
         //Rcout << "beging: iik, iip=" << iik << ", " << iip << std::endl;
-        while ((iip < np) && (xki == xkmax || (iip == np-1 && iip > 0) ? x[iip] <= xki : x[iip] < xki))
-            iip++;
+        while ((iip < np && x[iip] <= xkmax) && (xki == xkmax || (iip == np-1 && iip > 0) ? x[iip] <= xki : x[iip] < xki))
+            iip++; // find max iip s.t. x[iip]<[=] xk[iik] // "=" for the last iik
         //Rcout << "iik, iip=" << iik << ", " << iip << std::endl;
         ip(0, iik)=iip;
         if (iik > 0)
             ip(1, iik-1)=iip;
         if (iik == nk-2)
-            ip(1, iik)=(iip == np-1 && iip > 0) ? iip : np;
+            ip(1, iik)=(iip == ip_in && iip > 0) ? iip : ip_in+1;
         //ip.print("ip");
     }
     return ip;

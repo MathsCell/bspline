@@ -10,6 +10,11 @@ dbsp(f, nderiv = 1L, same_xk = FALSE)
 \item{f}{Function, B-spline such as returned by \code{smbsp()} or \code{par2bsp()}}
 
 \item{nderiv}{Integer scalar >= 0, order of derivative to calculate (1 by default)}
+
+\item{same_xk}{Logical scalar, if TRUE, indicates to calculate derivative
+on the same knot grid as original function. In this case, coefficient number
+will be incremented by 2. Otherwise, extreme knots are
+removed on each side of the grid and coefficient number is maintained (FALSE by default).}
 }
 \value{
 Function calculating requested derivative

@@ -3,9 +3,14 @@ library(bspline)
 x010=c(seq(0, 1, by=0.2), seq(0.8, 0, by=-0.2))
 x100=c(seq(1, 0, by=-0.2), 0, 0, 0, 0, 0)
 x001=rev(x100)
+test.ipk=function() {
+  x=seq(0, 2, len=11L)
+  checkEqualsNumeric(ipk(x, 0:1), t(t(c(0, 6)))) # and not (0,11) as before
+}
 test.bsc0=function() {
   x=seq(0, 2, len=11L)
   v=c(rep(1, 5), rep(0, 6))
+  checkEqualsNumeric(bsc(x, 0:1, n=0L), rev(1-v))
   checkEqualsNumeric(bsc(x, 0:2, n=0L), cbind(v, 1-v))
   checkEqualsNumeric(bsc(x, -1:3, n=0L), cbind(0,v, 1-v,0))
   checkEqualsNumeric(bsc(x, c(0, 0:2, 2), n=0L), cbind(0,v, 1-v,0))
