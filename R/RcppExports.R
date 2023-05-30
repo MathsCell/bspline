@@ -78,6 +78,30 @@ parr <- function(xk, n = 3L) {
     .Call(`_bspline_parr`, xk, n)
 }
 
+#' Polynomial B-spline Calculation of Basis Matrix
+#'
+#' @param x Numeric,vector, abscissa points
+#' @param xk Numeric vector, knots
+#' @param coeffs, Numeric 3D array, polynomial coefficients such as calculated by \code{\link{parr}}
+#' @return Numeric matrix, basis vectors, one per column. Row number is \code{length(x)}.
+#' @details
+#'  Polynomials are calculated recursively by Cox-de Boor formula. However, it is not applied to
+#'  final values but to polynomial coefficients. Multiplication by a linear functions gives
+#'  a raise of polynomial degree by 1.\cr
+#'  Polynomial coefficients stored in the first dimension of \code{coeffs} are used as in
+#'  the following formula \code{p[1]*x^n + p[1]*x^(n-1) + ... + p[n+1]}. \cr
+#'  Resulting matrix is the same as returned by \code{bsc(x, xk, n=dim(coeffs)[1]-1)}
+#' @examples
+#'   x=seq(0, 5, length.out=101)
+#'   xk=c(rep(0, n+1), 1:4, rep(5, n+1))
+#'   # cubic polynomial coefficients
+#'   coeffs=parr(xk)
+#'   # basis matrix
+#'   m=pbsc(x, xk, coeffs)
+#'   matplot(x, m, t="l")
+#'   stopifnot(all.equal.numeric(c(m), c(bsc(x, xk))))
+#' @seealso \code{\link{bsc}}
+#' @export
 pbsc <- function(x, xk, coeffs) {
     .Call(`_bspline_pbsc`, x, xk, coeffs)
 }

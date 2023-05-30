@@ -638,7 +638,7 @@ iknots=function(x, y, nki=1L, n=3L) {
 #'   
 #'   # randomly curved wire in 3D space
 #'\dontrun{
-#'   if (requireNamespace("rgl", quite=TRUE)) {
+#'   if (requireNamespace("rgl", quietly=TRUE)) {
 #'      xyz=matrix(rnorm(24),ncol=3)
 #'      tp=seq(0,1,len=201)
 #'      curv3d=bcurve(xyz)

@@ -287,16 +287,38 @@ cube parr(const vec &xk, const size_t n=3) {
     res.resize(n+1, n+1, nk-n-1);
     return res;
 }
+//' Polynomial B-spline Calculation of Basis Matrix
+//'
+//' @param x Numeric,vector, abscissa points
+//' @param xk Numeric vector, knots
+//' @param coeffs, Numeric 3D array, polynomial coefficients such as calculated by \code{\link{parr}}
+//' @return Numeric matrix, basis vectors, one per column. Row number is \code{length(x)}.
+//' @details
+//'  Polynomials are calculated recursively by Cox-de Boor formula. However, it is not applied to
+//'  final values but to polynomial coefficients. Multiplication by a linear functions gives
+//'  a raise of polynomial degree by 1.\cr
+//'  Polynomial coefficients stored in the first dimension of \code{coeffs} are used as in
+//'  the following formula \code{p[1]*x^n + p[1]*x^(n-1) + ... + p[n+1]}. \cr
+//'  Resulting matrix is the same as returned by \code{bsc(x, xk, n=dim(coeffs)[1]-1)}
+//' @examples
+//'   x=seq(0, 5, length.out=101)
+//'   xk=c(rep(0, n+1), 1:4, rep(5, n+1))
+//'   # cubic polynomial coefficients
+//'   coeffs=parr(xk)
+//'   # basis matrix
+//'   m=pbsc(x, xk, coeffs)
+//'   matplot(x, m, t="l")
+//'   stopifnot(all.equal.numeric(c(m), c(bsc(x, xk))))
+//' @seealso \code{\link{bsc}}
+//' @export
 // [[Rcpp::export]]
 mat pbsc(const vec& x, const vec& xk, const cube& coeffs) {
-    // polynomial B-spline calculation of basis matrix
-    // p[0]*x^n + p[1]*x^(n-1) + ... + p[n]
     size_t n=coeffs.n_rows-1;
     size_t nk=coeffs.n_slices+n+1;
     size_t nsp=nk-n-1;
     size_t first, last;
     if (nk != xk.n_elem)
-        stop("The length(xk)=%d must be equal to dim(coeffs)[3]+dim(coeffs)[1]=%d+%d=%d", xk.n_elem, nk-n-1, n+1, nk);
+        stop("pbsc: the length(xk)=%d must be equal to dim(coeffs)[3]+dim(coeffs)[1]=%d+%d=%d", xk.n_elem, nsp, n+1, nk);
     mat res(x.n_elem, nsp, fill::zeros);
     umat ip=ipk(x, xk);
 //ip.print("ip");
@@ -305,8 +327,9 @@ mat pbsc(const vec& x, const vec& xk, const cube& coeffs) {
         for (size_t isup=0; isup <= n; ++isup) {
 //Rcout << "\tisup=" << isup << std::endl;
             first=ip(0, isp+isup);
-            last=ip(1, isp+isup)-1;
-            if (last >= first) {
+            last=ip(1, isp+isup);
+            if (last > first) {
+                last -= 1;
                 res.col(isp).subvec(first, last) += polyval(coeffs.slice(isp).col(isup), x.subvec(first, last)-xk[isp+isup]);
 //res.print("res");
             }

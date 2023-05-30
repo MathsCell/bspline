@@ -1,6 +1,12 @@
+## v2.2.1 2023-??
+
+ - fixed typo in rgl example of `bcurve()`
+ - fixed NEWS mention of `parr()` for v2.2.
+
 ## v2.2 2023-05-26
 
  - added `bcurve()` for building nD curves from a set of control points
+ - added `parr()` polynomial formulation of B-splines
 
 ## v2.1 2022-09-26
 
