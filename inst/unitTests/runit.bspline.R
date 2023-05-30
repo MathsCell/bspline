@@ -102,8 +102,8 @@ test.fitsmbsp.ex=function() {
     lines(x, f(x))
     dev.off()
   }
-  #print(c("r2=", sum(r*r)))
-  checkEqualsNumeric(0.483397022710857, sum(r*r))
+  print(c("r2=", sum(r*r)))
+  checkEqualsNumeric(0.373974066239555, sum(r*r))
 }
 test.dbsp.ex=function() {
   x=seq(0., 1., length.out=11L)
@@ -112,4 +112,10 @@ test.dbsp.ex=function() {
   d_f=dbsp(f)
   r=d_f(x)-2*pi*cos(2*pi*x)
   checkEqualsNumeric(1.509721755, sum(r*r))
+}
+test.bcurve.ex=function() {
+  set.seed(71)
+  xy=matrix(rnorm(16), ncol=2)
+  #print(bcurve(xy)(0.5))
+  checkEqualsNumeric(c(-0.03506473, -0.1508343), bcurve(xy)(0.5), tol=1.e-6)
 }

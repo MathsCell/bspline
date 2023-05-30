@@ -127,8 +127,7 @@ bsp=function(x, xk, qw, n=3L) {
 #'   points(xk, fsm(xk), pch="x", col="red")
 #' @importFrom nlsic lsie_ln ls_ln_svd
 #' @importFrom stats sd
-#' @alias fitsmbsp
-#' @alias smbsp
+#' @aliases fitsmbsp smbsp
 #' @export
 smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, mat=NULL, estSD=FALSE, tol=1.e-10) {
     y=as.matrix(y)
@@ -281,8 +280,7 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
 #' outside of a meaningful range.
 #' @param control List, passed through to \code{nlsic()} call
 #' @rdname smbsp
-#' @alias fitsmbsp
-#' @alias smbsp
+#' @aliases fitsmbsp smbsp
 #' @examples
 #'  # fit broken line with linear B-splines
 #'  x1=seq(0, 1, length.out=11)
@@ -418,6 +416,8 @@ dbsp=function(f, nderiv=1L, same_xk=FALSE) {
 #' @return Numeric matrix of size \code{nqw-1 x nqw}
 #' @export
 dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
+    if (is.null(f) && is.function(nqw))
+        f=nqw
     if (!is.null(f)) {
         e=environment(f)
         if (is.null(nqw))
@@ -443,6 +443,7 @@ dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
     mat=mat*dxi
     if (!same_xk)
         mat=mat[c(-1L,-nrow(mat)),,drop=FALSE]
+    mat
 }
 
 #' Indefinite integral of B-spline
@@ -514,6 +515,7 @@ bsppar=function(f) {
 #' @export
 par2bsp=function(n, qw, xk, covqw=NULL, sdy=NULL, sdqw=NULL)
     local({
+        stopifnot(NROW(qw) == length(xk)-n-1)
         n=n
         qw=as.matrix(qw)
         xk=xk
@@ -522,19 +524,19 @@ par2bsp=function(n, qw, xk, covqw=NULL, sdy=NULL, sdqw=NULL)
         sdqw=sdqw
         function(x, select, fsd=0.) {
             if (fsd == 0.) {
-                if (base::missing(select)) bsp(x, xk, qw, n=n) else
-                bsp(x, xk, qw[, select, drop=FALSE], n=n)
+                if (base::missing(select)) bspline::bsp(x, xk, qw, n=n) else
+                bspline::bsp(x, xk, qw[, select, drop=FALSE], n=n)
             } else {
                 if (is.null(sdqw))
                     stop("B-spline is asked for fsd != 0 but sdqw is NULL")
-                if (base::missing(select)) bsp(x, xk, qw+fsd*sdqw, n=n) else
-                bsp(x, xk, qw[, select, drop=FALSE]+fsd*sdqw[, select, drop=FALSE], n=n)
+                if (base::missing(select)) bspline::bsp(x, xk, qw+fsd*sdqw, n=n) else
+                bspline::bsp(x, xk, qw[, select, drop=FALSE]+fsd*sdqw[, select, drop=FALSE], n=n)
             }
         }
     })
 #' Finite differences
 #'
-#' Calculate dy/dx where x,y are first and second columns of the entry matrix 'm'
+#' Calculate dy/dx where x,y are first and the rest of columns in the entry matrix 'm'
 #' @param m 2- or more-column numeric matrix
 #' @param ndiff Integer scalar, order of finite difference (1 by default)
 #' @return Numeric matrix, first column is midpoints of x, the second
@@ -609,4 +611,43 @@ iknots=function(x, y, nki=1L, n=3L) {
     y1=qw[k]
     y2=qw[k+1L]
     x1+(x2-x1)*(etv-y1)/(y2-y1)
+}
+
+#' nD B-curve governed by (x,y,...) control points.
+#'
+#' @param xy Real matrix of (x,y,...) coordinates, one control point per row.
+#' @param n Integer scalar, polynomial order of B-spline (3 by default)
+#' @return Function of one argument calculating B-curve. The argument is supposed
+#'   to be in [0, 1] interval.
+#' @details
+#'   The curve will pass by the first and the last points in 'xy'. The tangents at the
+#'   first and last points will coincide with the first and last segments of
+#'   control points. Example of signature is inspired from this \href{https://www.r-bloggers.com/2023/03/little-useless-useful-r-functions-using-xspline-to-create-wacky-signatures/}{blog}.
+#' @examples
+#'   # simulate doctor's signature ;)
+#'   set.seed(71);
+#'   xy=matrix(rnorm(16), ncol=2)
+#'   tp=seq(0,1,len=301)
+#'   doc_signtr=bcurve(xy)
+#'   plot(doc_signtr(tp), t="l", xaxt='n',  yaxt='n', ann=FALSE, frame.plot=FALSE,
+#'       xlim=range(xy[,1]), ylim=range(xy[,2]))
+#'   # see where control points are
+#'   text(xy, labels=seq(nrow(xy)), col=rgb(0, 0, 0, 0.25))
+#'   # join them by segments
+#'   lines(bcurve(xy, n=1)(tp), col=rgb(0, 0, 1, 0.25))
+#'   
+#'   # randomly curved wire in 3D space
+#'\dontrun{
+#'   if (requireNamespace("rgl", quite=TRUE)) {
+#'      xyz=matrix(rnorm(24),ncol=3)
+#'      tp=seq(0,1,len=201)
+#'      curv3d=bcurve(xyz)
+#'      rgl::plot3d(curv3d(tp), t="l", decorate=FALSE)
+#'   }
+#'}
+#' @export
+bcurve=function(xy, n=3) {
+    nq=nrow(xy)
+    stopifnot(nq >= 2)
+    bspline::par2bsp(n, xy, c(rep(0, n), seq(0, 1, length.out=nq-n+1), rep(1, n)))
 }

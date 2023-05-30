@@ -208,3 +208,109 @@ cube jacw(const cube& jac, const RObject& qws) {
     }
     return res;
 }
+vec pmult(size_t n, vec v, double c0, double c1) {
+    // v[0]*x^(n-1) + ... + v[n-1]
+    vec res(n+1, fill::zeros);
+    res.head(n)=c1*v.head(n);
+    res.subvec(1, n)+=c0*v.head(n);
+    return res;
+}
+//' Polynomial formulation of B-spline
+//'
+//' @param xk Numeric vector, knots
+//' @param n Integer scalar, polynomial order (3 by default)
+//' @return Numeric 3D array, the first index runs through n+1 polynomial coefficients;
+//'    the second -- through n+1 supporting intervals; and the last one through nk-n-1
+//'    B-splines (here nk=length(xk)). Knot interval of length 0 will have corresponding
+//'    coefficients set to 0.
+//' @export
+// [[Rcpp::export]]
+cube parr(const vec &xk, const size_t n=3) {
+    auto nk=xk.n_elem;
+    if (nk < 2+n)
+        stop("Knot number must be >= n+2=%i (got %i)", n+2, nk);
+    cube res(n+1, n+1, nk-1, fill::zeros); // will resize to nk-n-1 before return
+    vec dk=diff(xk);
+    vec dkn=dk;
+    uvec inzk;
+    double di0, di1, c00, c01;
+    for (size_t nc=0; nc <= n; nc++) {
+//Rcout << "nc=" << nc << std::endl;
+//res.print("entry");
+        // nc is the current n, B-spline order
+        // We start with polynomials of degree 0 and apply Cox-de Boor recursive formula
+        // by multiplying with polynomials of degree 1.
+        inzk=find(dk);
+        if (nc == 0) {
+            for (auto k: inzk)
+                res(0, 0, k)=1.;
+            continue;
+        }
+        // multiply polynomials
+        di0=dkn[0];
+        if (di0 != 0.)
+            di0=1./di0;
+        for (size_t isp=0; isp < nk-nc-1; isp++) {
+            // variable change on each interval: ksi in [0; dk[isp+isup]], ksi=x-xk[isp+isup]
+//Rcout << "isp=" << isp << std::endl;
+            di1=dkn[isp+1];
+            if (di1 != 0.) {
+                di1=1./di1;
+                //c01=xk[isp+nc+1]*di1;
+                c01=dkn[isp+1];
+            }
+            if (di0 != 0.)
+                c00=0.;
+                //c00=-xk[isp]*di0;
+            for (size_t isup=0; isup <= nc; ++isup) {
+//Rcout << "isup=" << isup << std::endl;
+                if (di0 != 0. && isup < nc) {
+                    if (isup > 0)
+                        c00 += dk[isp+isup-1];
+//Rcout << "c00=" << c00 << std::endl;
+                    res.slice(isp).col(isup).rows(0, nc)=pmult(nc, res.slice(isp).col(isup), c00*di0, di0);
+//res.print("d0");
+                }
+                if (di1 != 0. && isup > 0) {
+//Rcout << "c01=" << c01 << std::endl;
+                    res.slice(isp).col(isup).rows(0, nc) += pmult(nc, res.slice(isp+1).col(isup-1), c01*di1, -di1);
+                    c01 -= dk[isp+isup];
+//res.print("d1");
+                }
+            }
+            di0=di1;
+        }
+        // increase interval size
+        for (size_t ik=0; ik < nk-nc-1; ++ik)
+            dkn[ik] += dk[ik+nc];
+    }
+    res.resize(n+1, n+1, nk-n-1);
+    return res;
+}
+// [[Rcpp::export]]
+mat pbsc(const vec& x, const vec& xk, const cube& coeffs) {
+    // polynomial B-spline calculation of basis matrix
+    // p[0]*x^n + p[1]*x^(n-1) + ... + p[n]
+    size_t n=coeffs.n_rows-1;
+    size_t nk=coeffs.n_slices+n+1;
+    size_t nsp=nk-n-1;
+    size_t first, last;
+    if (nk != xk.n_elem)
+        stop("The length(xk)=%d must be equal to dim(coeffs)[3]+dim(coeffs)[1]=%d+%d=%d", xk.n_elem, nk-n-1, n+1, nk);
+    mat res(x.n_elem, nsp, fill::zeros);
+    umat ip=ipk(x, xk);
+//ip.print("ip");
+    for (size_t isp=0; isp < nsp; ++isp) {
+//Rcout << "isp=" << isp << std::endl;
+        for (size_t isup=0; isup <= n; ++isup) {
+//Rcout << "\tisup=" << isup << std::endl;
+            first=ip(0, isp+isup);
+            last=ip(1, isp+isup)-1;
+            if (last >= first) {
+                res.col(isp).subvec(first, last) += polyval(coeffs.slice(isp).col(isup), x.subvec(first, last)-xk[isp+isup]);
+//res.print("res");
+            }
+        }
+    }
+    return res;
+}

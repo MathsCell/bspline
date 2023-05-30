@@ -1,14 +1,18 @@
+## v2.2 2023-05-26
+
+ - added `bcurve()` for building nD curves from a set of control points
+
 ## v2.1 2022-09-26
 
- - smbsp() can estimate covariance matrix of estimated coefficients
- - added dmat() for integration operator
- - ipk() is now exported and tested
+ - `smbsp()` can estimate covariance matrix of estimated coefficients
+ - added `dmat()` for differentiation operator
+ - `ipk()` is now exported and tested
  - fixed 0-value for abscissas on the right hand side of the knot interval
 
 ## v2.0.1 2022-04-19
 
  - `bsc()` can calculate Jacobian of basis vectors as function of knots.
-    As a consequence, the suggestion of `numDeriv` package is removed
+    By consequence, the suggestion of `numDeriv` package is removed
  - added `jacw()` calculating Jacobian of B-spline with weights
  - added `ibsp()` for integration
  - now, `iknots()` can deal with repeated `x` values
@@ -21,7 +25,7 @@
 
  - fixed ipk() ASAN problem signaled by R CRAN team
  - fixed export of `par2bsp()`
- - fixed error in example of `firsmbsp()`
+ - fixed error in example of `fitsmbsp()`
  - fixed debug printing in `iknots()`
  - increased resolution from 5 to 10 intervals for tv fitting by linear
     B-splines in `iknots()`

@@ -50,11 +50,38 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// parr
+cube parr(const vec& xk, const size_t n);
+RcppExport SEXP _bspline_parr(SEXP xkSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const vec& >::type xk(xkSEXP);
+    Rcpp::traits::input_parameter< const size_t >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(parr(xk, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pbsc
+mat pbsc(const vec& x, const vec& xk, const cube& coeffs);
+RcppExport SEXP _bspline_pbsc(SEXP xSEXP, SEXP xkSEXP, SEXP coeffsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const vec& >::type xk(xkSEXP);
+    Rcpp::traits::input_parameter< const cube& >::type coeffs(coeffsSEXP);
+    rcpp_result_gen = Rcpp::wrap(pbsc(x, xk, coeffs));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_bspline_ipk", (DL_FUNC) &_bspline_ipk, 2},
     {"_bspline_bsc", (DL_FUNC) &_bspline_bsc, 4},
     {"_bspline_jacw", (DL_FUNC) &_bspline_jacw, 2},
+    {"_bspline_parr", (DL_FUNC) &_bspline_parr, 2},
+    {"_bspline_pbsc", (DL_FUNC) &_bspline_pbsc, 3},
     {NULL, NULL, 0}
 };
 

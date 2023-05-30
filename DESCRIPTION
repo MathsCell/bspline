@@ -1,7 +1,7 @@
 Package: bspline
 Type: Package
 Title: B-Spline Interpolation and Regression
-Version: 2.1
+Version: 2.2
 Author: Serguei Sokol <sokol@insa-toulouse.fr>
 Maintainer: Serguei Sokol <sokol@insa-toulouse.fr>
 Description: Build and use B-splines for interpolation and regression.
@@ -23,6 +23,6 @@ License: GPL-2
 Encoding: UTF-8
 Imports: Rcpp (>= 1.0.7), nlsic (>= 1.0.2), arrApply
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Suggests: RUnit
 Copyright: INRAE/INSA/CNRS

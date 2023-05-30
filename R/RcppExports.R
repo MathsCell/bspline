@@ -65,3 +65,20 @@ jacw <- function(jac, qws) {
     .Call(`_bspline_jacw`, jac, qws)
 }
 
+#' Polynomial formulation of B-spline
+#'
+#' @param xk Numeric vector, knots
+#' @param n Integer scalar, polynomial order (3 by default)
+#' @return Numeric 3D array, the first index runs through n+1 polynomial coefficients;
+#'    the second -- through n+1 supporting intervals; and the last one through nk-n-1
+#'    B-splines (here nk=length(xk)). Knot interval of length 0 will have corresponding
+#'    coefficients set to 0.
+#' @export
+parr <- function(xk, n = 3L) {
+    .Call(`_bspline_parr`, xk, n)
+}
+
+pbsc <- function(x, xk, coeffs) {
+    .Call(`_bspline_pbsc`, x, xk, coeffs)
+}
+

@@ -16,5 +16,5 @@ Numeric matrix, first column is midpoints of x, the second
  and following are dy/dx
 }
 \description{
-Calculate dy/dx where x,y are first and second columns of the entry matrix 'm'
+Calculate dy/dx where x,y are first and the rest of columns in the entry matrix 'm'
 }

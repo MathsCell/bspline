@@ -3,7 +3,9 @@ if (requireNamespace("RUnit", quietly=TRUE) && requireNamespace("bspline", quiet
   testSuite <- RUnit::defineTestSuite(
     name = "bspline unit tests",
     dirs = system.file("unitTests", package = "bspline"),
-    testFuncRegexp = "^[Tt]est.+"
+    testFuncRegexp = "^[Tt]est.+",
+    rngKind = "default",
+    rngNormalKind = "default"
   )
   tests <- RUnit::runTestSuite(testSuite)
 
