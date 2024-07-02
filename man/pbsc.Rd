@@ -14,17 +14,21 @@ pbsc(x, xk, coeffs)
 \item{coeffs, }{Numeric 3D array, polynomial coefficients such as calculated by \code{\link{parr}}}
 }
 \value{
-Numeric matrix, basis vectors, one per column. Row number is length(x).
+Numeric matrix, basis vectors, one per column. Row number is \code{length(x)}.
 }
 \description{
 Polynomial B-spline Calculation of Basis Matrix
 }
 \details{
-Polynomial coefficients stored in the first dimension of \code{coeffs} are used as in
- the following formula \code{p[0]*x^n + p[1]*x^(n-1) + ... + p[n]}. \cr
+Polynomials are calculated recursively by Cox-de Boor formula. However, it is not applied to
+ final values but to polynomial coefficients. Multiplication by a linear functions gives
+ a raise of polynomial degree by 1.\cr
+ Polynomial coefficients stored in the first dimension of \code{coeffs} are used as in
+ the following formula \code{p[1]*x^n + p[1]*x^(n-1) + ... + p[n+1]}. \cr
  Resulting matrix is the same as returned by \code{bsc(x, xk, n=dim(coeffs)[1]-1)}
 }
 \examples{
+  n=3
   x=seq(0, 5, length.out=101)
   xk=c(rep(0, n+1), 1:4, rep(5, n+1))
   # cubic polynomial coefficients

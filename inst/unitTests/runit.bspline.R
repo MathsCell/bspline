@@ -120,10 +120,11 @@ test.bcurve.ex=function() {
   checkEqualsNumeric(c(-0.03506473, -0.1508343), bcurve(xy)(0.5), tol=1.e-6)
 }
 test.pbsc.ex=function() {
+  n=3
   x=seq(0, 5, length.out=101)
   xk=c(rep(0, n+1), 1:4, rep(5, n+1))
   # cubic polynomial coefficients
-  coeffs=parr(xk)
+  coeffs=parr(xk, n)
   # basis matrix
   m=pbsc(x, xk, coeffs)
   checkEqualsNumeric(c(m), c(bsc(x, xk)))

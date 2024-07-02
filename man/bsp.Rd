@@ -34,5 +34,5 @@ This function does nothing else than calculate a dot-product between
   and \code{qw}, cf. \code{par2bsp()}.
 }
 \seealso{
-{bsc}, {par2bsp}
+[bsc], [par2bsp]
 }

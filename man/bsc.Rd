@@ -48,5 +48,5 @@ For n==0, step function is defined as constant on each interval
   stopifnot(all.equal.numeric(c(m), c(splines::bs(x, knots = 1:4, degree = n, intercept = TRUE))))
 }
 \seealso{
-{splines::bs()}, {splines2::bSpline()}
+[splines::bs()], [splines2::bSpline()]
 }

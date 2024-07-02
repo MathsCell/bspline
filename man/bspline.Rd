@@ -2,6 +2,7 @@
 % Please edit documentation in R/bspline.R
 \docType{package}
 \name{bspline}
+\alias{bspline-package}
 \alias{bspline}
 \title{bspline: build and use B-splines for interpolation and regression.}
 \description{
@@ -19,15 +20,23 @@ Build and use B-splines for interpolation and regression.
   The rest is implemented in R but without notable impact on computing speed.
 }
 \section{bspline functions}{
- \itemize{
- \item{\code{bsc}:}{ basis matrix (implemented in C++)}
- \item{\code{bsp}:}{ values of B-spline from its coefficients}
- \item{\code{dbsp}:}{ derivative of B-spline}
- \item{\code{par2bsp}:}{ build B-spline function from parameters }
- \item{\code{bsppar}:}{ retrieve B-spline parameters from its function}
- \item{\code{smbsp}:}{ build smoothing B-spline}
- \item{\code{fitsmbsp}:}{ build smoothing B-spline with optimized knot positions}
- \item{\code{diffn}:}{ finite differences}
+ \describe{
+ \item{"\code{bsc}:"}{ basis matrix (implemented in C++)}
+ \item{"\code{bsp}:"}{ values of B-spline from its coefficients}
+ \item{"\code{dbsp}:"}{ derivative of B-spline}
+ \item{"\code{par2bsp}:"}{ build B-spline function from parameters }
+ \item{"\code{bsppar}:"}{ retrieve B-spline parameters from its function}
+ \item{"\code{smbsp}:"}{ build smoothing B-spline}
+ \item{"\code{fitsmbsp}:"}{ build smoothing B-spline with optimized knot positions}
+ \item{"\code{diffn}:"}{ finite differences}
 }
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/MathsCell/bspline}
+  \item Report bugs at \url{https://github.com/MathsCell/bspline/issues}
+}
+
+}

@@ -13,15 +13,15 @@
 #'   performance that's why the basis calculation is implemented in C++.
 #'   The rest is implemented in R but without notable impact on computing speed.
 #'
-#' @section bspline functions: \itemize{
-#'  \item{\code{bsc}:}{ basis matrix (implemented in C++)}
-#'  \item{\code{bsp}:}{ values of B-spline from its coefficients}
-#'  \item{\code{dbsp}:}{ derivative of B-spline}
-#'  \item{\code{par2bsp}:}{ build B-spline function from parameters }
-#'  \item{\code{bsppar}:}{ retrieve B-spline parameters from its function}
-#'  \item{\code{smbsp}:}{ build smoothing B-spline}
-#'  \item{\code{fitsmbsp}:}{ build smoothing B-spline with optimized knot positions}
-#'  \item{\code{diffn}:}{ finite differences}
+#' @section bspline functions: \describe{
+#'  \item{"\code{bsc}:"}{ basis matrix (implemented in C++)}
+#'  \item{"\code{bsp}:"}{ values of B-spline from its coefficients}
+#'  \item{"\code{dbsp}:"}{ derivative of B-spline}
+#'  \item{"\code{par2bsp}:"}{ build B-spline function from parameters }
+#'  \item{"\code{bsppar}:"}{ retrieve B-spline parameters from its function}
+#'  \item{"\code{smbsp}:"}{ build smoothing B-spline}
+#'  \item{"\code{fitsmbsp}:"}{ build smoothing B-spline with optimized knot positions}
+#'  \item{"\code{diffn}:"}{ finite differences}
 #' }
 #'
 #' @docType package
@@ -46,7 +46,7 @@ NULL
 #'   For x values falling outside of xk range, the B-splines values are set to 0.
 #'   To get a function calculating spline values at arbitrary points from \code{xk}
 #'   and \code{qw}, cf. \code{par2bsp()}.
-#' @seealso {bsc}, {par2bsp}
+#' @seealso [bsc], [par2bsp]
 #' @export
 bsp=function(x, xk, qw, n=3L) {
     stopifnot(NROW(qw) == length(xk)-n-1L)

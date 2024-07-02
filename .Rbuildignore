@@ -1,4 +1,4 @@
 .gitignore
-notes/*
+notes
 ^.*\.Rproj$
 ^README\.md$

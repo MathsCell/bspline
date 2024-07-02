@@ -65,7 +65,7 @@ umat ipk(const vec& x, const vec& xk) {
 //'   in points where x=xk, the derivative is not defined.\cr
 //'   For n==1, Jacobian is discontinuous in such points so for
 //'   these points we take the derivative from the right.
-//' @seealso {splines::bs()}, {splines2::bSpline()}
+//' @seealso [splines::bs()], [splines2::bSpline()]
 //' @examples
 //'   x=seq(0, 5, length.out=101)
 //'   # cubic basis matrix
@@ -301,6 +301,7 @@ cube parr(const vec &xk, const size_t n=3) {
 //'  the following formula \code{p[1]*x^n + p[1]*x^(n-1) + ... + p[n+1]}. \cr
 //'  Resulting matrix is the same as returned by \code{bsc(x, xk, n=dim(coeffs)[1]-1)}
 //' @examples
+//'   n=3
 //'   x=seq(0, 5, length.out=101)
 //'   xk=c(rep(0, n+1), 1:4, rep(5, n+1))
 //'   # cubic polynomial coefficients
