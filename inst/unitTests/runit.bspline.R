@@ -69,9 +69,11 @@ test.ibsp=function() {
   f2=smbsp(x, x**2, nki=2)
   fi2=ibsp(f2)
   checkEqualsNumeric(fi2(x), x**3/3.)
+  checkEqualsNumeric(bsppar(fi2)$qw, imat(f2)%*%bsppar(f2)$qw)
   f3=smbsp(x, x**3, nki=2)
   fi3=ibsp(f3)
   checkEqualsNumeric(fi3(x), x**4/4.)
+  checkEqualsNumeric(bsppar(fi3)$qw, imat(f3)%*%bsppar(f3)$qw)
 }
 
 # doc examples

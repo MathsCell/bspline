@@ -4,7 +4,7 @@
 \alias{iknots}
 \title{Estimate internal knot positions equalizing jumps in n-th derivative}
 \usage{
-iknots(x, y, nki = 1L, n = 3L)
+iknots(x, y, nki = 1L, n = 3L, lenfit = 12L)
 }
 \arguments{
 \item{x}{Numeric vector}
@@ -14,6 +14,8 @@ iknots(x, y, nki = 1L, n = 3L)
 \item{nki}{Integer scalar, number of internal knots to estimate (1 by default)}
 
 \item{n}{Integer scalar, polynomial order of B-spline (3 by default)}
+
+\item{lenfit}{Integer scalar, length of knots for linear spline to fit the total variation)}
 }
 \value{
 Numeric vector, estimated knot positions

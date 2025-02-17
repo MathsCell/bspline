@@ -14,20 +14,20 @@
 #'   The rest is implemented in R but without notable impact on computing speed.
 #'
 #' @section bspline functions: \describe{
-#'  \item{"\code{bsc}:"}{ basis matrix (implemented in C++)}
-#'  \item{"\code{bsp}:"}{ values of B-spline from its coefficients}
-#'  \item{"\code{dbsp}:"}{ derivative of B-spline}
-#'  \item{"\code{par2bsp}:"}{ build B-spline function from parameters }
-#'  \item{"\code{bsppar}:"}{ retrieve B-spline parameters from its function}
-#'  \item{"\code{smbsp}:"}{ build smoothing B-spline}
-#'  \item{"\code{fitsmbsp}:"}{ build smoothing B-spline with optimized knot positions}
-#'  \item{"\code{diffn}:"}{ finite differences}
+#'  \item{\code{bsc}:}{ basis matrix (implemented in C++)}
+#'  \item{\code{bsp}:}{ values of B-spline from its coefficients}
+#'  \item{\code{dbsp}:}{ derivative of B-spline}
+#'  \item{\code{par2bsp}:}{ build B-spline function from parameters }
+#'  \item{\code{bsppar}:}{ retrieve B-spline parameters from its function}
+#'  \item{\code{smbsp}:}{ build smoothing B-spline}
+#'  \item{\code{fitsmbsp}:}{ build smoothing B-spline with optimized knot positions}
+#'  \item{\code{diffn}:}{ finite differences}
 #' }
 #'
-#' @docType package
 #' @name bspline
 #' @useDynLib bspline, .registration=TRUE
-NULL
+"_PACKAGE"
+
 
 #' Calculate B-spline values from their coefficients qw and knots xk
 #'
@@ -145,10 +145,10 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
     }
     #stopifnot(nki > 0)
     if (nki > 0L) {
-        stopifnot("xki is not inside of x range"=all((range(xki)-range(x))*c(1,-1) > 0))
-        xk=c(rep(x[1L], n+1), xki, rep(x[nx], n+1))
+        stopifnot("xki is not strictly inside of x range"=all((range(xki)-range(x))*c(1,-1) > 0))
+        xk=c(rep(x[1L], n+1L), xki, rep(x[nx], n+1L))
     } else {
-        xk=c(rep(x[1L], n+1), rep(x[nx], n+1))
+        xk=c(rep(x[1L], n+1L), rep(x[nx], n+1L))
     }
     
     nk=length(xk)
@@ -305,7 +305,7 @@ fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=
     }
     nki=length(xki)
     if (nki == 0L)
-        return(smbsp(x, y, n=n, xki=NULL, nki=0, lieq, monotone, positive))
+        return(smbsp(x, y, n=n, xki=NULL, nki=0L, lieq, monotone, positive))
     # inequalities
     # p[1] >= tail(x_1, 1)+epsx; p[i]+epsx <= p[i+1]; p[nki]+epsx <= x_n
     dx=diff(x)
@@ -326,11 +326,11 @@ fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=
             li=bsc(x, c(x1, xki, x2), n=n, cjac=TRUE)
             f=smbsp(x, y, n=n, xki=xki, nki=0, lieq=lieq, monotone=monotone, positive=positive, mat=li$mat)
             res=f(x)-y
-            jac=jacw(li$jac, bsppar(f)$qw)[,,(n+1)+seq_len(nki), drop=FALSE]
+            jac=jacw(li$jac, bsppar(f)$qw)[,,(n+1L)+seq_len(nki), drop=FALSE]
             dim(jac)=c(np*ncol(y), nki)
             list(res=res, jacobian=jac)
         } else {
-            list(res=smbsp(x, y, n=n, xki=xki, nki=0, lieq=lieq, monotone=monotone, positive=positive)(x)-y)
+            list(res=smbsp(x, y, n=n, xki=xki, nki=0L, lieq=lieq, monotone=monotone, positive=positive)(x)-y)
         }
     }
     if (is.null(control$errx))
@@ -339,7 +339,7 @@ fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=
         u=u, co=co, control=control, flsi=nlsic::lsi_ln)
     if (fit$error != 0)
         stop(fit$mes)
-    smbsp(x, y, n=n, xki=fit$par, nki=0, lieq=lieq, monotone=monotone, positive=positive, estSD=estSD, tol=tol)
+    smbsp(x, y, n=n, xki=fit$par, nki=0L, lieq=lieq, monotone=monotone, positive=positive, estSD=estSD, tol=tol)
 }
 
 #' Derivative of B-spline
@@ -398,7 +398,7 @@ dbsp=function(f, nderiv=1L, same_xk=FALSE) {
     }
 }
 
-#' Differentiation matrix
+#' Differentiation matrix of B-spline
 #'
 #' Calculate matrix for obtaining coefficients of first-derivative B-spline.
 #' They can be calculated as \code{dqw=Md \%*\% qw}. Here, dqw are coefficients
@@ -416,8 +416,10 @@ dbsp=function(f, nderiv=1L, same_xk=FALSE) {
 #' @return Numeric matrix of size \code{nqw-1 x nqw}
 #' @export
 dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
-    if (is.null(f) && is.function(nqw))
+    if (is.null(f) && is.function(nqw)) {
         f=nqw
+        nqw=NULL
+    }
     if (!is.null(f)) {
         e=environment(f)
         if (is.null(nqw))
@@ -455,10 +457,10 @@ dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
 #' @param nint Integer scalar >= 0, defines how many times to take integral (1 by default)
 #' @return Function calculating requested integral
 #' @details
-#' If f is B-spline, then following identity is held: Dbsp(ibsp(f)) is identical to f.
-#' Generally, it does not work in the other sens: ibsp(Dbsp(f)) is not f
+#' If f is B-spline, then following identity is held: dbsp(ibsp(f)) is identical to f.
+#' Generally, it does not work in the other sens: ibsp(dbsp(f)) is not f
 #' but not very far. If we can get an appropriate constant C=f(min(x)) then
-#' we can assert that ibsp(Dbsp(f), const=C) is the same as f.
+#' we can assert that ibsp(dbsp(f), const=C) is the same as f.
 #' @export
 ibsp=function(f, const=0, nint=1L) {
     stopifnot(nint >= 0L)
@@ -486,6 +488,52 @@ ibsp=function(f, const=0, nint=1L) {
         ibsp(res, nint=nint-1L, const)
     }
 }
+
+#' Integration matrix of B-spline
+#'
+#' Calculate matrix for obtaining coefficients of indefinite integral of B-spline.
+#' They can be calculated as \code{iqw=Mi \%*\% qw}. Here, iqw are coefficients
+#' of the indefinite integral of B-spline,
+#' Mi is the matrix returned by this function, and qw are the coefficients
+#' of integrated B-spline.\cr
+#' As per the nature of the indefinite integral, this coefficients are defined up to
+#' arbitrary additive constant.\cr
+#'
+#' @param nqw Integer scalar, row number of qw matrix (i.e. degree of freedom of a B-spline)
+#' @param xk Numeric vector, knot positions
+#' @param n Integer scalar, B-spline polynomial order
+#' @param f Function from which previous parameters can be retrieved.
+#'   If both f and any of previous parameters are given then explicitly
+#'   set parameters take precedence over those retrieved from f.
+#' @return Numeric matrix of size \code{nqw+1 x nqw}
+#' @export
+imat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL) {
+    if (is.null(f) && is.function(nqw)) {
+        f=nqw
+        nqw=NULL
+    }
+    if (!is.null(f)) {
+        e=environment(f)
+        if (is.null(nqw))
+            nqw=NROW(e$qw)
+        if (is.null(xk))
+            xk=e$xk
+        if (is.null(n))
+            n=e$n
+    }
+    if (is.null(nqw))
+        stop("nqw must be deduced from f or given explicitly")
+    if (is.null(xk))
+        stop("xk must be deduced from f or given explicitly")
+    if (is.null(n))
+        stop("n must be deduced from f or given explicitly")
+    n1=n+1L
+    dxi=diff(xk, lag=n1)/n1
+    #qwn=rbind(0, arrApply::arrApply(qw*diff(xk, lag=n1)/n1, 1L, "cumsum"))
+    mat=vapply(seq_len(nqw), function(i) c(dxi[seq_len(i)], double(nqw-i)), double(nqw))
+    t(cbind(0., mat))
+}
+
 #' Retrieve parameters of B-splines
 #'
 #' @param f Function, B-splines such that returned by par3bsp(), smbsp(), ...
@@ -568,9 +616,10 @@ diffn=function(m, ndiff=1L) {
 #' @param y Numeric vector or matrix
 #' @param nki Integer scalar, number of internal knots to estimate (1 by default)
 #' @param n Integer scalar, polynomial order of B-spline (3 by default)
+#' @param lenfit Integer scalar, length of knots for linear spline to fit the total variation)
 #' @return Numeric vector, estimated knot positions
 #' @export
-iknots=function(x, y, nki=1L, n=3L) {
+iknots=function(x, y, nki=1L, n=3L, lenfit=12L) {
     stopifnot(nki >= 0L)
     if (nki == 0L)
         return(double(0L))
@@ -585,22 +634,22 @@ iknots=function(x, y, nki=1L, n=3L) {
     dxy=diffn(dxyn, 1L)
     dy=dxy[,-1L, drop=FALSE]
     xtv=dxyn[,1L]
-    tv=rbind(0, arrApply::arrApply(abs(dy)*diff(xtv), 1, "cumsum"))
+    tv=rbind(0., arrApply::arrApply(abs(dy)*diff(xtv), 1L, "cumsum"))
     tv=arrApply::arrApply(tv, 2L, "multv", v=1./tv[nrow(tv),])
     tv[!is.finite(tv)]=0.
     tv=rowSums(tv)
     tv=tv/tv[length(tv)]
     ra=range(xtv)
-    ftv=smbsp(xtv, tv, xki=xtv[1]+diff(ra)*seq(0, 1, length.out=12)[2:11], n=1L, lieq=list(cbind(ra,0:1)), monotone=1)
+    ftv=smbsp(xtv, tv, xki=xtv[1L]+diff(ra)*seq(0., 1., length.out=lenfit)[2L:(lenfit-1L)], n=1L, lieq=list(cbind(ra,0:1)), monotone=1)
     par=bsppar(ftv)
     if (FALSE) {
         print(c("knots qw=", par$qw))
         print(c("knots dqw=", diff(par$qw)))
     }
-    etv=seq(0, 1, length.out=nki+2L)[c(-1L, -(nki+2L))] # equalized tv
+    etv=seq(0., 1., length.out=nki+2L)[c(-1L, -(nki+2L))] # equalized tv
     qw=par$qw
     dq=diff(qw)
-    dq[dq < 0]=0 # to force monotonicity despite round off errors
+    dq[dq < 0.]=0. # to force monotonicity despite round off errors
     qw=c(0., cumsum(dq))
     qw=qw/qw[length(qw)] # to make qw end up in 1
     ik=findInterval(etv, qw, rightmost.closed=TRUE)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bspline.R
 \name{dmat}
 \alias{dmat}
-\title{Differentiation matrix}
+\title{Differentiation matrix of B-spline}
 \usage{
 dmat(nqw = NULL, xk = NULL, n = NULL, f = NULL, same_xk = FALSE)
 }

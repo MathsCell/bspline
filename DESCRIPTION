@@ -1,9 +1,11 @@
 Package: bspline
 Type: Package
 Title: B-Spline Interpolation and Regression
-Version: 2.2.2
-Author: Serguei Sokol <sokol@insa-toulouse.fr>
-Maintainer: Serguei Sokol <sokol@insa-toulouse.fr>
+Version: 2.3.0
+Authors@R: person(given = "Serguei",
+                    family = "Sokol",
+                    role = c("aut", "cre"),
+                    email = "sokol@insa-toulouse.fr")
 Description: Build and use B-splines for interpolation and regression.
   In case of regression, equality constraints as well as monotonicity
   and/or positivity of B-spline weights can be imposed. Moreover, 
@@ -23,6 +25,6 @@ License: GPL-2
 Encoding: UTF-8
 Imports: Rcpp (>= 1.0.7), nlsic (>= 1.0.2), arrApply
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests: RUnit
 Copyright: INRAE/INSA/CNRS

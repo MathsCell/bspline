@@ -1,7 +1,14 @@
+## v2.3.0 2025-02-05
+
+ - added imat(), integration matrix computation
+ - fixed dmat() for nqw
+ - fixed extra quotes in `bspline` manual
+ - added parameter 'lenfit' to iknots()
+
 ## v2.2.2 2024-07-02
 
  - fixed typo in example of `pbsc()`
- - fixed syntax error in manul for `bsc()` and `bsp()`
+ - fixed syntax error in manual for `bsc()` and `bsp()`
  - fixed missing variable in test of example for `pbsc()`
  - fixed missing export for `pbsc()`
 
