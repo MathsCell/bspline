@@ -4,7 +4,7 @@
 \alias{iknots}
 \title{Estimate internal knot positions equalizing jumps in n-th derivative}
 \usage{
-iknots(x, y, nki = 1L, n = 3L, lenfit = 12L)
+iknots(x, y, nki = 1L, n = 3L, lenfit = 12L, smooth = FALSE)
 }
 \arguments{
 \item{x}{Numeric vector}
@@ -15,15 +15,18 @@ iknots(x, y, nki = 1L, n = 3L, lenfit = 12L)
 
 \item{n}{Integer scalar, polynomial order of B-spline (3 by default)}
 
-\item{lenfit}{Integer scalar, length of knots for linear spline to fit the total variation)}
+\item{lenfit}{Integer scalar, length of knots for linear spline to fit the total variation if greater than 0, otherwise full linear interpolation is used (12 by default)}
+
+\item{smooth}{Logical scalar, should total variation be smoothed? (FALSE by default)}
 }
 \value{
 Numeric vector, estimated knot positions
 }
 \description{
-Normalized total variation of n-th finite differences is calculated for each column in
-\code{y} then averaged. These averaged values are fitted by a linear spline to
-find knot positions that equalize the jumps of n-th derivative.\cr
-NB. This function is used internally in \code{(fit)smbsp()} and a priori
-has no interest to be called directly by user.
+Normalized total variation of n-th finite
+differences is calculated for each column in
+\code{y} then averaged. These averaged values are smoothed (if requested)
+and sampled to find knot positions which equalize the jumps of n-th
+derivative. If any of found knots fall inside a same x interval, TV is
+smoothed till no such situation occurs.
 }

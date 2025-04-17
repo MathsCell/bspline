@@ -40,3 +40,7 @@ Useful links:
 }
 
 }
+\author{
+\strong{Maintainer}: Serguei Sokol \email{sokol@insa-toulouse.fr}
+
+}

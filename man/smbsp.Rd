@@ -16,7 +16,8 @@ smbsp(
   positive = 0,
   mat = NULL,
   estSD = FALSE,
-  tol = 1e-10
+  tol = 1e-10,
+  regular_grid = FALSE
 )
 
 fitsmbsp(
@@ -30,7 +31,8 @@ fitsmbsp(
   positive = 0,
   control = list(),
   estSD = FALSE,
-  tol = 1e-10
+  tol = 1e-10,
+  regular_grid = FALSE
 )
 }
 \arguments{
@@ -83,6 +85,8 @@ into account of SD.}
 \item{tol}{Numerical scalar, relative tolerance for small singular values
 that should be considered as 0 if \code{s[i] <= tol*s[1]}. This parameter
 is ignored if estSD=FALSE (1.e-10 by default).}
+
+\item{regular_grid}{Logical scalar, should regular knot grid be used when xki=NULL (FALSE by default)}
 
 \item{control}{List, passed through to \code{nlsic()} call}
 }

@@ -23,12 +23,11 @@ as qw (can be estimated in \code{\link{smbsp}}).}
 }
 \value{
 Function, calculating B-splines at arbitrary points and having
- interface \code{f(x, select)} where \code{x} is a vector of abscissa points.
+ interface \code{f(x, select, fsd=0.)} where \code{x} is a vector of abscissa points.
  Parameter \code{select} is passed to
- \code{qw[, select, drop=FALSE]} and can be missing. This function will return
- a matrix of size \code{length(x) x ncol(qw)} if \code{select} is missing. Elsewhere,
- a number of column will depend on \code{select} parameter. Column names in
- the result matrix will be inherited from \code{qw}.
+ \code{qw[, select, drop=FALSE]} and can be missing or NULL in which case all columns of qw are used.
+ \code{fsd} is a factor for SD to be added to the B-spline. Column names in
+ the result matrix returned by \code{f()} will be inherited from \code{qw}.
 }
 \description{
 Convert parameters to B-spline function

@@ -1,3 +1,15 @@
+## v2.4 2025-03-12
+
+ - added abcisse range check for arguments in equality constraints of smbsp()
+ - iknots: tv can be smoothed for xki finding
+ - iknots: tv is smoothed till at least one x point belongs to each knot interval
+ - iknots: if lenfit is 0, all tv values are used for linear interpolation
+ - smbsp: outside or border xki are now removed with warning, not error
+ - \[fit\]smbsp: added `regular_grid` parameter
+ - fitsmbsp: default precision in xki fit is 0.01*dx instead of 0.1*dx
+ - fitsmbsp: minimal distance imposed between knots is now dx, not dx/10
+ - par2bsp: if select parameter is NULL, it is considered as missing
+ 
 ## v2.3.0 2025-02-05
 
  - added imat(), integration matrix computation
