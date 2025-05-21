@@ -1,3 +1,9 @@
+## v2.5 2025-05-16
+
+ - least norm is replaced by minimizing the norm of n-th derivative coeffs in under-determined systems
+ - dmat() gains a new parameter `nderiv`
+ - fixed flate tv curve in iknots()
+
 ## v2.4 2025-03-12
 
  - added abcisse range check for arguments in equality constraints of smbsp()

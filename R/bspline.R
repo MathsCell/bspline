@@ -240,6 +240,9 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
     }
     monotone=as.character(monotone)
     positive=as.character(positive)
+#browser()
+    # minimize the norm of the n-th derivative if under-detrmined
+    dm=dmat(nqw=ncol(mat), xk=xk, n=n, nderiv=n)
     if (!is.null(lieq) || any(monotone != 0) || any(positive != 0)) {
         #browser()
         qra=qr(mat, LAPACK=TRUE)
@@ -248,11 +251,11 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
             p=positive[ic]
             e=if (!is.null(liece)) liece[[ic]]$e else NULL
             ce=if (!is.null(liece)) liece[[ic]]$ce else NULL
-            nlsic::lsie_ln(qra, y[,ic], u=uco[[m]][[p]]$u, co=uco[[m]][[p]]$co, e=e, ce=ce)
+            nlsic::lsie_ln(qra, y[,ic], u=uco[[m]][[p]]$u, co=uco[[m]][[p]]$co, e=e, ce=ce, rcond=1./tol, mnorm=dm)
         }, double(nw)), dim=c(nw, nc), dimnames=list(NULL, colnames(y)))
         #browser()
     } else {
-        qw=nlsic::ls_ln_svd(mat, y)
+        qw=nlsic::ls_ln(mat, y, rcond=1./tol, mnorm=dm)
     }
     f=par2bsp(n, qw, xk)
     if (estSD) {
@@ -443,9 +446,10 @@ dbsp=function(f, nderiv=1L, same_xk=FALSE) {
 #'   If both f and any of previous parameters are given then explicitly
 #'   set parameters take precedence over those retrieved from f.
 #' @param same_xk Logical scalar, the same meaning as in \code{\link{dbsp}}
+#' @param nderiv Integer scalar, order of differentiation (default 1)
 #' @return Numeric matrix of size \code{nqw-1 x nqw}
 #' @export
-dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
+dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE, nderiv=1L) {
     if (is.null(f) && is.function(nqw)) {
         f=nqw
         nqw=NULL
@@ -466,6 +470,9 @@ dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
     if (is.null(n))
         stop("n must be deduced from f or given explicitly")
     stopifnot(nqw == length(xk)-n-1L)
+    if (nderiv == 0L)
+        return(diag(nrow=nqw))
+    stopifnot(n >= nderiv)
     n1=nqw+1L
     i=seq_len(nqw)
     mat=diag(nrow=n1, ncol=nqw)
@@ -475,7 +482,7 @@ dmat=function(nqw=NULL, xk=NULL, n=NULL, f=NULL, same_xk=FALSE) {
     mat=mat*dxi
     if (!same_xk)
         mat=mat[c(-1L,-nrow(mat)),,drop=FALSE]
-    mat
+    if (nderiv == 1L) mat else dmat(nqw+(same_xk-0.5)*2, if (same_xk) xk else xk[-c(1L,length(xk))], n=n-1L, same_xk=same_xk, nderiv=nderiv-1L)%*%mat
 }
 
 #' Indefinite integral of B-spline
@@ -670,10 +677,11 @@ smooth_lap=function(x, y) {
 iknots=function(x, y, nki=1L, n=3L, lenfit=12L, smooth=FALSE) {
     stopifnot(nki >= 0L)
     stopifnot(nki <= length(x)-2L)
+    nx=length(x)
     if (nki == 0L)
         return(double(0L))
     if (nki == length(x)-2L)
-        return(x[-c(1L, length(x))])
+        return(x[-c(1L, nx)])
     y=as.matrix(y)
     xy=cbind(x, y)
     dubx=duplicated(x)
@@ -683,8 +691,6 @@ iknots=function(x, y, nki=1L, n=3L, lenfit=12L, smooth=FALSE) {
         xy=t(vapply(ix, function(ii) if (length(ii) > 1L) colMeans(xy[ii,,drop=FALSE]) else xy[ii,], xy[1L,]))
     }
     dxyn=diffn(xy, n)
-    dxy=diffn(dxyn, 1L)
-    dy=dxy[,-1L, drop=FALSE]
     xtv=dxyn[,1L]
     # linearly extend xtv to cover the same interval as x
     ra=range(xtv)
@@ -692,12 +698,17 @@ iknots=function(x, y, nki=1L, n=3L, lenfit=12L, smooth=FALSE) {
     a=diff(rax)/diff(ra)
     b=x[1L]-a*xtv[1L]
     xtve=a*xtv+b
-    tv=rbind(0., arrApply::arrApply(abs(dy)*diff(xtv), 1L, "cumsum"))
+    tv=rbind(0., arrApply::arrApply(abs(diff(dxyn[,-1L,drop=FALSE])), 1L, "cumsum"))
     tv=arrApply::arrApply(tv, 2L, "multv", v=1./tv[nrow(tv),])
-    tv[!is.finite(tv)]=0.
+    tv[!is.finite(tv)|is.na(tv)]=0.
     tv=rowSums(tv)
-    tv=tv/tv[length(tv)]
     ntv=length(tv)
+    tv=tv/tv[ntv]
+    tv[!is.finite(tv)|is.na(tv)]=0.
+    if (diff(range(tv)) < 1.e-10) {
+        # all 0 => return regular grid
+        return(seq(x[1L], x[nx], length.out=nki+2L)[-c(1L,nki+2L)])
+    }
     
     if (smooth)
         tv=smooth_lap(xtve, tv)

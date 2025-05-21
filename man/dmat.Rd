@@ -4,7 +4,7 @@
 \alias{dmat}
 \title{Differentiation matrix of B-spline}
 \usage{
-dmat(nqw = NULL, xk = NULL, n = NULL, f = NULL, same_xk = FALSE)
+dmat(nqw = NULL, xk = NULL, n = NULL, f = NULL, same_xk = FALSE, nderiv = 1L)
 }
 \arguments{
 \item{nqw}{Integer scalar, row number of qw matrix (i.e. degree of freedom of a B-spline)}
@@ -18,6 +18,8 @@ If both f and any of previous parameters are given then explicitly
 set parameters take precedence over those retrieved from f.}
 
 \item{same_xk}{Logical scalar, the same meaning as in \code{\link{dbsp}}}
+
+\item{nderiv}{Integer scalar, order of differentiation (default 1)}
 }
 \value{
 Numeric matrix of size \code{nqw-1 x nqw}

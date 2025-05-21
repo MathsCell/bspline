@@ -3,6 +3,7 @@ library(bspline)
 x010=c(seq(0, 1, by=0.2), seq(0.8, 0, by=-0.2))
 x100=c(seq(1, 0, by=-0.2), 0, 0, 0, 0, 0)
 x001=rev(x100)
+nrm2=function(x) sum(x*x)
 test.ipk=function() {
   x=seq(0, 2, len=11L)
   checkEqualsNumeric(ipk(x, 0:1), t(t(c(0, 6)))) # and not (0,11) as before
@@ -75,7 +76,14 @@ test.ibsp=function() {
   checkEqualsNumeric(fi3(x), x**4/4.)
   checkEqualsNumeric(bsppar(fi3)$qw, imat(f3)%*%bsppar(f3)$qw)
 }
-
+test.mnorm=function() {
+  x=seq(0, 5, len=11)
+  y=exp(-x)
+  xpp=seq(0, 5, len=301);
+  s=smbsp(x, y, n=3, nki=8, regular_grid=TRUE);
+  checkEqualsNumeric(nrm2(s(xpp)-exp(-xpp)), 8.010032e-05, tolerance=1.e-7)
+}
+#----------------------------------
 # doc examples
 test.smbsp.ex=function() {
   x=seq(0, 1, length.out=11)
@@ -88,7 +96,7 @@ test.fitsmbsp.ex=function() {
   # fit broken line with linear B-splines
   x1=seq(0, 1, length.out=11)
   x2=seq(1, 3, length.out=21)
-  x3=seq(3, 4, len=11)
+  x3=seq(3, 4, length.out=11)
   set.seed(7)
   y1=x1+rnorm(x1, sd=0.1)
   y2=-2+3*x2+rnorm(x2, sd=0.1)
@@ -97,15 +105,15 @@ test.fitsmbsp.ex=function() {
   y=c(y1, y2, y3)
   f=fitsmbsp(x, y, n=1, nki=2)
   r=f(x)-y
-  #print(sum(r*r))
+  #print(nrm2(r))
   if (FALSE) {
     pdf("tmp.pdf")
     plot(x, y)
     lines(x, f(x))
     dev.off()
   }
-  #print(c("r2=", sum(r*r)))
-  checkEqualsNumeric(0.3742364, sum(r*r), tolerance=1.e-6)
+  #print(c("r2=", nrm2(r)))
+  checkEqualsNumeric(0.3742364, nrm2(r), tolerance=1.e-6)
 }
 test.dbsp.ex=function() {
   x=seq(0., 1., length.out=11L)
@@ -113,7 +121,7 @@ test.dbsp.ex=function() {
   f=smbsp(x, y, nki=2L)
   d_f=dbsp(f)
   r=d_f(x)-2*pi*cos(2*pi*x)
-  checkEqualsNumeric(0.1992064, sum(r*r), tolerance=1.e-6)
+  checkEqualsNumeric(0.1992064, nrm2(r), tolerance=1.e-6)
 }
 test.bcurve.ex=function() {
   set.seed(71)
