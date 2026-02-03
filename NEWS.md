@@ -1,3 +1,7 @@
+# v2.5.1 2026-01-27
+
+ - fixed a unit test due to new version of nlsic
+
 ## v2.5 2025-05-16
 
  - least norm is replaced by minimizing the norm of n-th derivative coeffs in under-determined systems
