@@ -139,3 +139,80 @@ test.pbsc.ex=function() {
   m=pbsc(x, xk, coeffs)
   checkEqualsNumeric(c(m), c(bsc(x, xk)))
 }
+test.parr.jac=function() {
+  # compare analytical Jacobian of polynomial coefficients to central finite differences
+  for (n in 1:4) {
+    xk=c(0, 0.3, 1, 1.7, 2.5, 3.1, 4, 5.2, 6.1, 7, 8.3, 9)
+    nk=length(xk)
+    nw=nk-n-1
+    r=parr(xk, n, cjac=TRUE)
+    checkEqualsNumeric(parr(xk, n), r$coeffs)
+    checkEquals(c(n+1, n+1, nw, n+2), dim(r$jac))
+    h=1.e-6
+    for (m in seq_len(nk)) {
+      xp=xm=xk
+      xp[m]=xk[m]+h
+      xm[m]=xk[m]-h
+      d=(parr(xp, n)-parr(xm, n))/(2*h)
+      for (k in seq_len(nw)) {
+        l=m-k+1 # xk[m]=xk[k+l-1]
+        if (l < 1 || l > n+2)
+          next
+        checkEqualsNumeric(d[,,k], r$jac[,,k,l], tolerance=1.e-6)
+      }
+    }
+  }
+}
+test.pjacw=function() {
+  # must give the same result as jacw() applied to the Jacobian of bsc()
+  x=seq(0, 5, length.out=101)
+  for (n in 1:4) {
+    xk=c(rep(0, n+1), 1:4, rep(5, n+1))
+    nw=length(xk)-n-1
+    pc=parr(xk, n, cjac=TRUE)
+    set.seed(7)
+    qws=matrix(rnorm(3*nw), ncol=3)
+    ref=jacw(bsc(x, xk, n, cjac=TRUE)$jac, qws)
+    checkEqualsNumeric(ref, pjacw(x, xk, pc$coeffs, pc$jac, qws), tolerance=1.e-8)
+    # vector weights
+    checkEqualsNumeric(jacw(bsc(x, xk, n, cjac=TRUE)$jac, qws[,1]),
+      pjacw(x, xk, pc$coeffs, pc$jac, qws[,1]), tolerance=1.e-8)
+  }
+  # wrong number of weights
+  pc=parr(xk, 3L, cjac=TRUE)
+  checkException(pjacw(x, xk, pc$coeffs, pc$jac, 1:3))
+}
+test.dbsp.coeffs=function() {
+  x=seq(0, 1, length.out=11)
+  y=sin(2*pi*x)
+  f=smbsp(x, y, nki=2L)
+  e=environment(f)
+  #e$coeffs=parr(e$xk, e$n)
+  xf=seq(0.05, 0.95, length.out=41)
+  for (same_xk in c(FALSE, TRUE)) {
+    for (nd in 1:3) {
+      d=dbsp(f, nd, same_xk)
+      p=bsppar(d)
+      checkEquals(e$n-nd, p$n)
+      # coeffs deduced by dparr() must be the same as calculated by parr() for the order and knots of the derivative
+      checkEquals(parr(p$xk, p$n), p$coeffs)
+      # and give the same function values
+      checkEqualsNumeric(d(xf), pbsc(xf, p$xk, p$coeffs) %*% p$qw)
+    }
+  }
+  # coeffs of wrong dimension are refused by par2bsp
+  checkException(par2bsp(3L, 1:5, c(0, 0, 0, 0, 1, 2, 2, 2, 2), coeffs=array(0, c(3, 3, 5))))
+  # no coeffs in f => none in the derivative
+  e$coeffs=NULL
+  checkTrue(is.null(bsppar(dbsp(f))$coeffs))
+}
+test.dparr=function() {
+  xk=c(0, 0, 0, 0, 1, 1, 2.5, 3, 5, 5, 5, 5)
+  for (n in 1:4) {
+    pc=parr(xk, n)
+    checkEquals(parr(xk, n-1L), dparr(xk, pc, same_xk=TRUE))
+    checkEquals(parr(xk[c(-1L, -length(xk))], n-1L), dparr(xk, pc, same_xk=FALSE))
+  }
+  checkException(dparr(xk, parr(xk, 3L)[,,-1L]))
+  checkException(dparr(xk, parr(xk, 0L)))
+}

@@ -4,7 +4,15 @@
 \alias{par2bsp}
 \title{Convert parameters to B-spline function}
 \usage{
-par2bsp(n, qw, xk, covqw = NULL, sdy = NULL, sdqw = NULL)
+par2bsp(
+  n,
+  qw,
+  xk,
+  covqw = NULL,
+  sdy = NULL,
+  sdqw = NULL,
+  coeffs = parr(xk, n = n)
+)
 }
 \arguments{
 \item{n}{Integer scalar, polynomial order of B-splines}
@@ -20,6 +28,10 @@ column in case of matrix}
 
 \item{sdqw}{Numeric Matrix, SD of qw thus having the same dimension
 as qw (can be estimated in \code{\link{smbsp}}).}
+
+\item{coeffs}{Numeric 3D array, polynomial coefficients of B-splines such as returned by
+\code{\link{parr}(xk, n)}, thus of dimension \code{(n+1) x (n+1) x nrow(qw)}. If not NULL, it is
+stored in the environment of the returned function.}
 }
 \value{
 Function, calculating B-splines at arbitrary points and having

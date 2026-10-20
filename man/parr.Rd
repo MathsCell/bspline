@@ -4,19 +4,37 @@
 \alias{parr}
 \title{Polynomial formulation of B-spline}
 \usage{
-parr(xk, n = 3L)
+parr(xk, n = 3L, cjac = FALSE)
 }
 \arguments{
 \item{xk}{Numeric vector, knots}
 
 \item{n}{Integer scalar, polynomial order (3 by default)}
+
+\item{cjac}{Logical scalar, if \code{TRUE} makes to calculate Jacobian of polynomial
+coefficients as function of knot positions (FALSE by default)}
 }
 \value{
-Numeric 3D array, the first index runs through n+1 polynomial coefficients;
+Numeric 3D array (for cjac=FALSE), the first index runs through n+1 polynomial coefficients;
    the second -- through n+1 supporting intervals; and the last one through nk-n-1
    B-splines (here nk=length(xk)). Knot interval of length 0 will have corresponding
-   coefficients set to 0.
+   coefficients set to 0; or List (for cjac=TRUE) with components \describe{
+     \item{coeffs}{the 3D array described above}
+     \item{jac}{4D array of dimension \code{(n+1) x (n+1) x nw x (n+2)} where
+       \code{nw=nk-n-1} is the number of B-splines and n+2 is the number of support
+       knots for each B-spline. The element \code{jac[i, j, k, l]} is the derivative of
+       \code{coeffs[i, j, k]} with respect to the knot \code{xk[k+l-1]}
+     }
+   }
 }
 \description{
 Polynomial formulation of B-spline
+}
+\details{
+The polynomial coefficients on the j-th supporting interval of the k-th B-spline
+ are those of a polynomial in the local variable \code{x-xk[k+j-1]}. The Jacobian is
+ calculated for coefficients as such, i.e. keeping the local variable fixed. The
+ dependence of the local variable on knot \code{xk[k+j-1]} itself is not included.
+ Zero-length knot intervals as well as B-splines whose support knots are all identical
+ have zero Jacobian (as they have zero coefficients).
 }

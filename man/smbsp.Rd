@@ -15,6 +15,7 @@ smbsp(
   monotone = 0,
   positive = 0,
   mat = NULL,
+  coeffs = NULL,
   estSD = FALSE,
   tol = 1e-10,
   regular_grid = FALSE
@@ -75,6 +76,10 @@ the constraint for corresponding column of y.}
 \item{mat}{Numeric matrix of basis vectors, if NULL it is recalculated
 by \code{bsc()}. If provided, it is the responsibility of the user
 to ensure that this matrix be adequate to xki vector.}
+
+\item{coeffs}{Numeric 3D array, polynomial coefficients of B-splines such as returned by
+\code{\link{parr}(xk, n)}, thus of dimension \code{(n+1) x (n+1) x nrow(qw)}. If not NULL, it is
+stored in the environment of the returned function (NULL by default).}
 
 \item{estSD}{Logical scalar, if TRUE, indicates to calculate: SD of each y column, covariance
 matrix and SD of spline coefficients. All these values can be retrieved

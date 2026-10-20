@@ -69,13 +69,29 @@ jacw <- function(jac, qws) {
 #'
 #' @param xk Numeric vector, knots
 #' @param n Integer scalar, polynomial order (3 by default)
-#' @return Numeric 3D array, the first index runs through n+1 polynomial coefficients;
+#' @param cjac Logical scalar, if \code{TRUE} makes to calculate Jacobian of polynomial
+#'   coefficients as function of knot positions (FALSE by default)
+#' @return Numeric 3D array (for cjac=FALSE), the first index runs through n+1 polynomial coefficients;
 #'    the second -- through n+1 supporting intervals; and the last one through nk-n-1
 #'    B-splines (here nk=length(xk)). Knot interval of length 0 will have corresponding
-#'    coefficients set to 0.
+#'    coefficients set to 0; or List (for cjac=TRUE) with components \describe{
+#'      \item{coeffs}{the 3D array described above}
+#'      \item{jac}{4D array of dimension \code{(n+1) x (n+1) x nw x (n+2)} where
+#'        \code{nw=nk-n-1} is the number of B-splines and n+2 is the number of support
+#'        knots for each B-spline. The element \code{jac[i, j, k, l]} is the derivative of
+#'        \code{coeffs[i, j, k]} with respect to the knot \code{xk[k+l-1]}
+#'      }
+#'    }
+#' @details
+#'  The polynomial coefficients on the j-th supporting interval of the k-th B-spline
+#'  are those of a polynomial in the local variable \code{x-xk[k+j-1]}. The Jacobian is
+#'  calculated for coefficients as such, i.e. keeping the local variable fixed. The
+#'  dependence of the local variable on knot \code{xk[k+j-1]} itself is not included.
+#'  Zero-length knot intervals as well as B-splines whose support knots are all identical
+#'  have zero Jacobian (as they have zero coefficients).
 #' @export
-parr <- function(xk, n = 3L) {
-    .Call(`_bspline_parr`, xk, n)
+parr <- function(xk, n = 3L, cjac = FALSE) {
+    .Call(`_bspline_parr`, xk, n, cjac)
 }
 
 #' Polynomial B-spline Calculation of Basis Matrix
@@ -105,5 +121,71 @@ parr <- function(xk, n = 3L) {
 #' @export
 pbsc <- function(x, xk, coeffs) {
     .Call(`_bspline_pbsc`, x, xk, coeffs)
+}
+
+#' Knot Jacobian of polynomial B-spline with weights
+#'
+#' Analogous to \code{\link{jacw}} but based on polynomial coefficients of B-splines
+#' (see \code{\link{parr}} and \code{\link{pbsc}}).
+#'
+#' @param x Numeric vector, abscissa points
+#' @param xk Numeric vector, knots
+#' @param coeffs Numeric 3D array, polynomial coefficients such as calculated by \code{\link{parr}}
+#' @param jac Numeric 4D array, Jacobian of \code{coeffs} by knots such as calculated by
+#'   \code{parr(xk, n, cjac=TRUE)$jac}
+#' @param qws Numeric matrix, each column is a set of weights forming a
+#'   B-spline. If qws is a vector, it is coerced to 1-column matrix.
+#' @return Numeric array of size \code{nx x ncol(qws) x nk}, where \code{nx=length(x)}
+#'   and \code{nk=length(xk)}. The element \code{[i, j, k]} is the derivative of the
+#'   j-th weighted B-spline at \code{x[i]} with respect to \code{xk[k]}. It has the same layout
+#'   as the result of \code{jacw(bsc(x, xk, n, cjac=TRUE)$jac, qws)}.
+#' @details
+#'  On the j-th supporting interval of the k-th B-spline, the polynomial is taken in the local
+#'  variable \code{x-xk[k+j-1]}, so the derivative by \code{xk[k+j-1]} gets an additional term
+#'  coming from the derivative of this polynomial with respect to its variable.
+#'  For n=0 the Jacobian is 0 and for n=1 it is taken from the right in points where
+#'  it is discontinuous (as in \code{\link{bsc}}).
+#' @examples
+#'   n=3
+#'   x=seq(0, 5, length.out=101)
+#'   xk=c(rep(0, n+1), 1:4, rep(5, n+1))
+#'   qws=cbind(1:8, 8:1)
+#'   pc=parr(xk, n, cjac=TRUE)
+#'   jw=pjacw(x, xk, pc$coeffs, pc$jac, qws)
+#'   stopifnot(all.equal(jw, jacw(bsc(x, xk, n, cjac=TRUE)$jac, qws)))
+#' @seealso \code{\link{jacw}}, \code{\link{parr}}, \code{\link{pbsc}}
+#' @export
+pjacw <- function(x, xk, coeffs, jac, qws) {
+    .Call(`_bspline_pjacw`, x, xk, coeffs, jac, qws)
+}
+
+#' Polynomial coefficients of B-splines of order n-1 from those of order n
+#'
+#' Calculate polynomial coefficients for B-splines of order n-1 on the knot grid
+#' of the derivative of an order n B-spline (see \code{\link{dbsp}}), starting
+#' from the polynomial coefficients of order n B-splines.
+#'
+#' @param xk Numeric vector, knots of order n B-splines
+#' @param coeffs Numeric 3D array, polynomial coefficients of order n B-splines
+#'   such as calculated by \code{\link{parr}(xk, n)}
+#' @param same_xk Logical scalar, if \code{TRUE}, order n-1 B-splines are defined
+#'   on the same knots \code{xk}, otherwise on \code{xk[-c(1, length(xk))]}
+#'   (FALSE by default)
+#' @return Numeric 3D array of dimension \code{n x n x nw1}, where \code{nw1} is
+#'   \code{dim(coeffs)[3]+1} for \code{same_xk=TRUE} and \code{dim(coeffs)[3]-1} otherwise.
+#'   It is the same as \code{parr(xk, n-1)} (\code{same_xk=TRUE}) or
+#'   \code{parr(xk[-c(1, length(xk))], n-1)} (\code{same_xk=FALSE}) up to numerical precision.
+#' @details
+#'  Let B be a B-spline of order n on knots t[0], ..., t[n+1], and U, V be B-splines
+#'  of order n-1 on knots t[0], ..., t[n] and t[1], ..., t[n+1] respectively.
+#'  The Cox-de Boor formula and the derivative of B-spline
+#'  give a linear system on U and V. Its solution is
+#'  \code{V=(B-(x-t[0])*B'/n)*(t[n+1]-t[1])/(t[n+1]-t[0])} and
+#'  \code{U=(B+(t[n+1]-x)*B'/n)*(t[n]-t[0])/(t[n+1]-t[0])}. These are polynomial
+#'  operations applied on each supporting interval of B.
+#' @seealso \code{\link{parr}}, \code{\link{dbsp}}
+#' @export
+dparr <- function(xk, coeffs, same_xk = FALSE) {
+    .Call(`_bspline_dparr`, xk, coeffs, same_xk)
 }
 

@@ -4,7 +4,7 @@
 \alias{bsp}
 \title{Calculate B-spline values from their coefficients qw and knots xk}
 \usage{
-bsp(x, xk, qw, n = 3L)
+bsp(x, xk, qw, n = 3L, coeffs = parr(xk, n = n))
 }
 \arguments{
 \item{x}{Numeric vector, abscissa points at which B-splines should be calculated.
@@ -17,6 +17,8 @@ must be equal to \code{length(xk)-n-1} where \code{n} is the next parameter}
 
 \item{n}{Integer scalar, polynomial order of B-splines, by default cubic splines
 are calculated.}
+
+\item{coeffs}{Numeric 3D array, polynomial coefficients of B-splines.}
 }
 \value{
 Numeric matrix (column number depends on qw dimensions), B-spline values on x.
@@ -25,8 +27,7 @@ Numeric matrix (column number depends on qw dimensions), B-spline values on x.
 Calculate B-spline values from their coefficients qw and knots xk
 }
 \details{
-This function does nothing else than calculate a dot-product between
-  a B-spline basis matrix calculated by \code{bsc()} and coefficients \code{qw}.
+This function calculates a sum of basis B-splines multiplied by their respective coefficients \code{qw}.
   If qw is a matrix, each
   column corresponds to a separate set of coefficients.
   For x values falling outside of xk range, the B-splines values are set to 0.

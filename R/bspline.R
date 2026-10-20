@@ -38,9 +38,9 @@
 #'   must be equal to \code{length(xk)-n-1} where \code{n} is the next parameter
 #' @param n Integer scalar, polynomial order of B-splines, by default cubic splines
 #'   are calculated.
+#' @param coeffs Numeric 3D array, polynomial coefficients of B-splines.
 #' @return Numeric matrix (column number depends on qw dimensions), B-spline values on x.
-#' @details This function does nothing else than calculate a dot-product between
-#'   a B-spline basis matrix calculated by \code{bsc()} and coefficients \code{qw}.
+#' @details This function calculates a sum of basis B-splines multiplied by their respective coefficients \code{qw}.
 #'   If qw is a matrix, each
 #'   column corresponds to a separate set of coefficients.
 #'   For x values falling outside of xk range, the B-splines values are set to 0.
@@ -48,9 +48,10 @@
 #'   and \code{qw}, cf. \code{par2bsp()}.
 #' @seealso [bsc], [par2bsp]
 #' @export
-bsp=function(x, xk, qw, n=3L) {
+bsp=function(x, xk, qw, n=3L, coeffs=parr(xk, n=n)) {
     stopifnot(NROW(qw) == length(xk)-n-1L)
-    bsc(x, xk, n=n)%*%qw
+    stopifnot(n == dim(coeffs)[1L]-1L)
+    pbsc(x, xk, coeffs)%*%qw
 }
 
 #' Smoothing B-spline of order n >= 0
@@ -86,6 +87,9 @@ bsp=function(x, xk, qw, n=3L) {
 #' @param mat Numeric matrix of basis vectors, if NULL it is recalculated
 #'   by \code{bsc()}. If provided, it is the responsibility of the user
 #'   to ensure that this matrix be adequate to xki vector.
+#' @param coeffs Numeric 3D array, polynomial coefficients of B-splines such as returned by
+#'   \code{\link{parr}(xk, n)}, thus of dimension \code{(n+1) x (n+1) x nrow(qw)}. If not NULL, it is
+#'   stored in the environment of the returned function (NULL by default).
 #' @param estSD Logical scalar, if TRUE, indicates to calculate: SD of each y column, covariance
 #'   matrix and SD of spline coefficients. All these values can be retrieved
 #'   with bsppar() call (FALSE by default). These estimations are made under assumption
@@ -130,7 +134,7 @@ bsp=function(x, xk, qw, n=3L) {
 #' @importFrom stats sd
 #' @aliases fitsmbsp smbsp
 #' @export
-smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, mat=NULL, estSD=FALSE, tol=1.e-10, regular_grid=FALSE) {
+smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, mat=NULL, coeffs=NULL, estSD=FALSE, tol=1.e-10, regular_grid=FALSE) {
     y=as.matrix(y)
     nx=length(x)
     nc=ncol(y)
@@ -155,8 +159,11 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
     
     nk=length(xk)
     nw=nk-n-1L
+    if (is.null(coeffs))
+        coeffs=parr(xk, n=n)
     if (is.null(mat))
-        mat=bsc(x, xk, n=n)
+        mat=pbsc(x, xk, coeffs)
+    
     # equality constraints
     if (!is.null(lieq)) {
         stopifnot(length(lieq) == ncol(y))
@@ -172,7 +179,7 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
                     stop("The following arguments for equality constraint '", nm,
                         "' are out of x range [", rax[1L], "; ", rax[2L], "]:\n\t",
                         paste0("x=", meq[ibad,1L], collapse="\n\t"), call.=FALSE)
-                list(e=bsc(meq[,1L], n=n, xk), ce=meq[,2L])
+                list(e=pbsc(meq[,1L], xk, coeffs), ce=meq[,2L])
             }
         })
     } else {
@@ -257,7 +264,7 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
     } else {
         qw=nlsic::ls_ln(mat, y, rcond=1./tol, mnorm=dm)
     }
-    f=par2bsp(n, qw, xk)
+    f=par2bsp(n, qw, xk, coeffs=coeffs)
     if (estSD) {
         #browser()
         # estimate sd of the fit
@@ -356,10 +363,11 @@ fitsmbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=
     x2=rep(x[np], n+1L)
     fresid=function(xki, cjac) {
         if (cjac) {
-            li=bsc(x, c(x1, xki, x2), n=n, cjac=TRUE)
-            f=smbsp(x, y, n=n, xki=xki, nki=0, lieq=lieq, monotone=monotone, positive=positive, mat=li$mat, tol=tol)
+            lip=parr(c(x1, xki, x2), n=n, cjac=TRUE)
+            mat=pbsc(x, c(x1, xki, x2), lip$coeffs)
+            f=smbsp(x, y, n=n, xki=xki, nki=0, lieq=lieq, monotone=monotone, positive=positive, mat=mat, coeffs = lip$coeffs, tol=tol)
             res=f(x)-y
-            jac=jacw(li$jac, bsppar(f)$qw)[,,(n+1L)+seq_len(nki), drop=FALSE]
+            jac=pjacw(x, c(x1, xki, x2), lip$coeffs, lip$jac, bsppar(f)$qw)[,,(n+1L)+seq_len(nki), drop=FALSE]
             dim(jac)=c(np*ncol(y), nki)
             list(res=res, jacobian=jac)
         } else {
@@ -404,6 +412,7 @@ dbsp=function(f, nderiv=1L, same_xk=FALSE) {
     qw=e$qw
     xk=e$xk
     n=e$n
+    coeffs=e$coeffs
     stopifnot(n >= nderiv)
     dxi=n/diff(xk, lag=n)
     dxi[!is.finite(dxi)]=0.
@@ -411,18 +420,20 @@ dbsp=function(f, nderiv=1L, same_xk=FALSE) {
         qwn=arrApply::arrApply(rbind(0., qw, 0.), 1L, "diff")*dxi
         colnames(qwn)=colnames(qw)
         #browser()
-        res=par2bsp(n-1L, qwn, xk)
+        dcoeffs=if (is.null(coeffs)) NULL else dparr(xk, coeffs, same_xk=TRUE)
+        res=par2bsp(n-1L, qwn, xk, coeffs=dcoeffs)
         if (nderiv == 1L) {
             res
         } else {
-            dbsp(res, nderiv=nderiv-1L)
+            dbsp(res, nderiv=nderiv-1L, same_xk)
         }
     } else {
         dxi=dxi[c(-1L, -length(dxi))]
         qwn=arrApply::arrApply(qw, 1L, "diff")*dxi
         colnames(qwn)=colnames(qw)
         #browser()
-        res=par2bsp(n-1L, qwn, xk[c(-1L, -length(xk))])
+        dcoeffs=if (is.null(coeffs)) NULL else dparr(xk, coeffs, same_xk=FALSE)
+        res=par2bsp(n-1L, qwn, xk[c(-1L, -length(xk))], coeffs=dcoeffs)
         if (nderiv == 1L) {
             res
         } else {
@@ -590,6 +601,9 @@ bsppar=function(f) {
 #' @param sdy Numeric vector, SD of each y column (can be estimated in \code{\link{smbsp}}).
 #' @param sdqw Numeric Matrix, SD of qw thus having the same dimension
 #'   as qw (can be estimated in \code{\link{smbsp}}).
+#' @param coeffs Numeric 3D array, polynomial coefficients of B-splines such as returned by
+#'   \code{\link{parr}(xk, n)}, thus of dimension \code{(n+1) x (n+1) x nrow(qw)}. If not NULL, it is
+#'   stored in the environment of the returned function.
 #' @return Function, calculating B-splines at arbitrary points and having
 #'  interface \code{f(x, select, fsd=0.)} where \code{x} is a vector of abscissa points.
 #'  Parameter \code{select} is passed to
@@ -597,27 +611,32 @@ bsppar=function(f) {
 #'  \code{fsd} is a factor for SD to be added to the B-spline. Column names in
 #'  the result matrix returned by \code{f()} will be inherited from \code{qw}.
 #' @export
-par2bsp=function(n, qw, xk, covqw=NULL, sdy=NULL, sdqw=NULL)
+par2bsp=function(n, qw, xk, covqw=NULL, sdy=NULL, sdqw=NULL, coeffs=parr(xk, n=n))
     local({
         stopifnot(NROW(qw) == length(xk)-n-1)
+        stopifnot(is.null(coeffs) || all(dim(coeffs) == c(n+1L, n+1L, NROW(qw))))
         n=n
         qw=as.matrix(qw)
         xk=xk
         covqw=covqw
         sdy=sdy
         sdqw=sdqw
+        coeffs=coeffs
         function(x, select, fsd=0.) {
             if (fsd == 0.) {
-                if (base::missing(select) || is.null(select)) bspline::bsp(x, xk, qw, n=n) else
-                bspline::bsp(x, xk, qw[, select, drop=FALSE], n=n)
+                if (base::missing(select) || is.null(select))
+                    bspline::bsp(x, xk, qw, n=n, coeffs=coeffs)
+                else
+                    bspline::bsp(x, xk, qw[, select, drop=FALSE], n=n, coeffs=coeffs)
             } else {
                 if (is.null(sdqw))
                     stop("B-spline is asked for fsd != 0 but sdqw is NULL")
-                if (base::missing(select) || is.null(select)) bspline::bsp(x, xk, qw+fsd*sdqw, n=n) else
-                bspline::bsp(x, xk, qw[, select, drop=FALSE]+fsd*sdqw[, select, drop=FALSE], n=n)
+                if (base::missing(select) || is.null(select)) bspline::bsp(x, xk, qw+fsd*sdqw, n=n, coeffs=coeffs) else
+                bspline::bsp(x, xk, qw[, select, drop=FALSE]+fsd*sdqw[, select, drop=FALSE], n=n, coeffs=coeffs)
             }
         }
     })
+
 #' Finite differences
 #'
 #' Calculate dy/dx where x,y are first and the rest of columns in the entry matrix 'm'

@@ -43,4 +43,9 @@ Useful links:
 \author{
 \strong{Maintainer}: Serguei Sokol \email{sokol@insa-toulouse.fr}
 
+Authors:
+\itemize{
+  \item Serguei Sokol \email{sokol@insa-toulouse.fr}
+}
+
 }

@@ -1,4 +1,10 @@
-# v2.5.1 2026-01-27
+# Logs of changes to bspline package
+
+## v2.6.0 2026-10-20
+
+ - generalized the use of polynomial coefficients instead of matrix approach where appropriate
+ 
+## v2.5.1 2026-01-27
 
  - fixed a unit test due to new version of nlsic
 
