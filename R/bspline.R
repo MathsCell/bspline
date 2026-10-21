@@ -262,7 +262,7 @@ smbsp=function(x, y, n=3L, xki=NULL, nki=1L, lieq=NULL, monotone=0, positive=0, 
         }, double(nw)), dim=c(nw, nc), dimnames=list(NULL, colnames(y)))
         #browser()
     } else {
-        qw=nlsic::ls_ln(mat, y, rcond=1./tol, mnorm=dm)
+        qw=structure(nlsic::ls_ln(mat, y, rcond=1./tol, mnorm=dm), dimnames=list(NULL, colnames(y)))
     }
     f=par2bsp(n, qw, xk, coeffs=coeffs)
     if (estSD) {
